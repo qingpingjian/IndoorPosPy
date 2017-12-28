@@ -8,28 +8,43 @@ Created on 2017/12/27 14:51
 @software: PyCharm Community Edition
 """
 
-import numpy as np
+import math
 import matplotlib.pyplot as plt
+import numpy as np
+import sys
+
 
 """
 The empirical CDF is usually defined as
 CDF(x) = "number of samples <= x" / "number of samples"
 """
+def cdf(data, hasDuplicate=True):
+    sortedData = np.sort(data)
+    dataLength = len(sortedData)
+    cdfData = np.arange(1, dataLength + 1) / float(dataLength)
+    retValue = (sortedData, cdfData)
+    if hasDuplicate:
+        distinctData = [sortedData[-1]]
+        distinctCDF = [1.0]
+        for i in range(dataLength - 2, -1, -1):
+            if math.fabs(distinctData[-1] - sortedData[i]) > sys.float_info.epsilon:
+                distinctData.append(sortedData[i])
+                distinctCDF.append(cdfData[i])
+        retValue = (np.array(distinctData), np.array(distinctCDF))
+    return retValue
+
 
 if __name__ == "__main__":
-    # Create some test data
-    dx = 0.1
-    X = np.arange(-2, 2 + dx, dx)
-    Y = np.exp(-X**2)
-
-    # Normalize the data to a proper PDF
-    Y /= (dx * Y).sum()
-    # Compute the CDF
-    CY = np.cumsum(dx * Y)
+    # some test data
+    data = [0.02, 0.02, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.6, 0.8, 1., 1.2, 1.2, 1.4]
+    # Calculate the CDF
+    X, Y = cdf(data)
+    X2, Y2 = cdf(data, False)
 
     # Plot the function
-    plt.plot(X, Y)
-    plt.plot(X, CY, "r--")
+    plt.grid(True)
+    plt.plot(X2, Y2, marker="o")
+    plt.plot(X, Y, "r--", marker="*")
     plt.show()
 
     print("Done.")
