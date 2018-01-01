@@ -4,7 +4,7 @@
 Created on 2017/12/21 下午10:42
 @author: Pete
 @email: yuwp_1985@163.com
-@file: StepLength.py
+@file: steplength.py
 @software: PyCharm Community Edition
 """
 

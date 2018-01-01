@@ -4,7 +4,7 @@
 Created on 2017/12/27 14:51
 @author: Pete
 @email: yuwp_1985@163.com
-@file: CdfDemo.py
+@file: cdfdemo.py
 @software: PyCharm Community Edition
 """
 

@@ -4,7 +4,7 @@
 Created on 2017/12/27 22:03
 @author: Pete
 @email: yuwp_1985@163.com
-@file: StepCounter.py
+@file: stepcounter.py
 @software: PyCharm Community Edition
 """
 

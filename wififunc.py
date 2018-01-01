@@ -4,7 +4,7 @@
 Created on 2017/11/10 上午1:00
 @author: Pete
 @email: yuwp_1985@163.com
-@file: WifiFunc.py
+@file: wififunc.py
 @software: PyCharm Community Edition
 """
 
