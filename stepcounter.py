@@ -15,6 +15,8 @@ import numpy as np
 import scipy.signal as signal
 import string
 
+from dataloader import loadAcceData
+
 
 # Prepocess the acceleration data
 def prepocessData(acceDataFilePath) :
@@ -155,6 +157,15 @@ def stepCount(timeList, valueList, maxThreshold, timeThreshold) :
 
     return peakTimeList, peakValueList
 
+class SimpleStepCounter(object):
+    def __init__(self, maxThreshold, timeThreshold, sampleFreq, lowCut=0.5, highCut=4.0):
+        self.maxThreshold = maxThreshold
+        self.timeThreshold = timeThreshold
+        self.sampleFreq = sampleFreq
+        self.lowCut = lowCut
+        self.highCut = highCut
+
+
 
 if __name__ == "__main__" :
     # Accelerometer data for step counting
@@ -162,6 +173,8 @@ if __name__ == "__main__" :
     acceDataFilePath = "./RawData/StepCounter/20170707201405_acce.txt"
     # Get accelerator data in txt file
     acceTimeReferenceList, acceValueList = prepocessData(acceDataFilePath)
+
+    aTList, aVList = loadAcceData(acceDataFilePath)
 
     # Smoothing filter - sliding windows
     # size = 7
@@ -176,6 +189,9 @@ if __name__ == "__main__" :
     acceValueArray = acceValueArray.astype(np.float)
     acceValueArrayF = butterFilter(acceValueArray, lowCutOff, highCutOff, sampleFs)
 
+    avArray = np.array(aVList).astype(np.float)
+    avArrayF = butterFilter(avArray, lowCutOff, highCutOff, sampleFs)
+
     # Algorithm of step counter
     maxThreshold = 0.85      # m/s^2
     timeThreshold = 0.380     # s
@@ -189,8 +205,9 @@ if __name__ == "__main__" :
     # Plot the axes
     plt.xlabel(r"$time(s)$", fontsize=25)
     plt.ylabel(r"$acceleration(m/s^2)$", fontsize=25)
-    acceLine, = plt.plot(acceTimeReferenceList, acceValueArrayF, lw=1.5, label="Acceleration")
+    acceLine, = plt.plot(acceTimeReferenceList, acceValueArrayF, lw=3,color="red", label="Acceleration")
+    acceLine2, = plt.plot(aTList, avArrayF, lw=1, color = "blue", label="Acceleration Panda")
     stepMarker, = plt.plot(peakTimeList, peakValueList, "rx", ms=10, label="Steps")
-    plt.legend(handles=[acceLine, stepMarker], fontsize=20)
+    plt.legend(handles=[acceLine, acceLine2, stepMarker], fontsize=20)
     plt.show()
     print("Done.")
