@@ -15,7 +15,7 @@ import numpy as np
 import scipy.signal as signal
 import string
 
-from dataloader import loadAcceData
+from dataloader import butterFilter, loadAcceData
 
 
 # Prepocess the acceleration data
@@ -36,17 +36,17 @@ def prepocessData(acceDataFilePath) :
     return acceTimeReferenceList, acceValueList
 
 
-# Apply butterworth filter to the raw accelerometer data
-def butterBandpass(lowcut, highcut, fs, order = 2):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = signal.butter(order, [low, high], btype='band')
-    return b, a
-def butterFilter(data, lowcut, highcut, fs, order = 2):
-    b, a = butterBandpass(lowcut, highcut, fs, order=order)
-    y = signal.lfilter(b, a, data)
-    return y
+# # Apply butterworth filter to the raw accelerometer data
+# def butterBandpass(lowcut, highcut, fs, order = 2):
+#     nyq = 0.5 * fs
+#     low = lowcut / nyq
+#     high = highcut / nyq
+#     b, a = signal.butter(order, [low, high], btype='band')
+#     return b, a
+# def butterFilter(data, lowcut, highcut, fs, order = 2):
+#     b, a = butterBandpass(lowcut, highcut, fs, order=order)
+#     y = signal.lfilter(b, a, data)
+#     return y
 
 
 # Calculate the average value of data list
@@ -158,12 +158,10 @@ def stepCount(timeList, valueList, maxThreshold, timeThreshold) :
     return peakTimeList, peakValueList
 
 class SimpleStepCounter(object):
-    def __init__(self, maxThreshold, timeThreshold, sampleFreq, lowCut=0.5, highCut=4.0):
+    def __init__(self, maxThreshold, timeThreshold):
         self.maxThreshold = maxThreshold
         self.timeThreshold = timeThreshold
-        self.sampleFreq = sampleFreq
-        self.lowCut = lowCut
-        self.highCut = highCut
+
 
 
 
@@ -187,10 +185,10 @@ if __name__ == "__main__" :
     highCutOff = 4
     acceValueArray = np.array(acceValueList)
     acceValueArray = acceValueArray.astype(np.float)
-    acceValueArrayF = butterFilter(acceValueArray, lowCutOff, highCutOff, sampleFs)
+    acceValueArrayF = butterFilter(acceValueList)
 
     avArray = np.array(aVList).astype(np.float)
-    avArrayF = butterFilter(avArray, lowCutOff, highCutOff, sampleFs)
+    avArrayF = butterFilter(aVList)
 
     # Algorithm of step counter
     maxThreshold = 0.85      # m/s^2
