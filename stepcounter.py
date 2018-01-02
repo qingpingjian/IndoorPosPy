@@ -157,13 +157,115 @@ def stepCount(timeList, valueList, maxThreshold, timeThreshold) :
 
     return peakTimeList, peakValueList
 
+
 class SimpleStepCounter(object):
-    def __init__(self, maxThreshold, timeThreshold):
+
+    def __init__(self, maxThreshold, minThreshold, timeThreshold):
         self.maxThreshold = maxThreshold
+        self.minThreshold = minThreshold
         self.timeThreshold = timeThreshold
 
+    def getNextPeak(self, valueList, startIndex):
+        """
+        Get the next peak point from the given start index, startIndex <= len(valueList) - 2
+        :param valueList: accelerometer data list
+        :param startIndex: the given start index
+        :return: the index and value of next peak point
+        """
+        index = startIndex
+        value = valueList[index]
+        nextValue = valueList[index + 1]
+        while nextValue <= value :
+            value = nextValue
+            index = index + 1
+            if index + 2 >= len(valueList):
+                return index, value # Can not find a valid peak
+            nextValue = valueList[index + 1]
+        while nextValue >= value :
+            value = nextValue
+            index = index + 1
+            if index + 2 >= len(valueList):
+                break
+            nextValue = valueList[index + 1]
+        return index, value
 
+    def searchTrough(self, valueList, startIndex, direction = True):
+        """
+        If direction is True, we search the next trough, otherwise we search the previous trough
+        :param valueList: accelerometer data list
+        :param startIndex: the given start index
+        :param direction: the search direction flag
+        :return: the index and value of wanted trough point
+        """
+        index = startIndex
+        value = valueList[index]
+        nextIndex = index + 1 if direction else index - 1
+        nextValue = valueList[nextIndex]
+        while nextValue <= value:
+            value = nextValue
+            index = nextIndex
+            if (direction and index + 2 >= len(valueList)) or (not direction and index - 1 <= 0):
+                break
+            nextIndex = index + 1 if direction else index - 1
+            nextValue = valueList[nextIndex]
+        return index, value
 
+    def countStep(self, timeList, valueList):
+        """
+        Get the step count from the given accelerometer data
+        :param timeList: time list of accelerometer
+        :param valueList: accelerometer data list
+        :return: the peak point index and indexes of its start trough point and end trough point
+        """
+        peakTimeList = []
+        peakValueList = []
+        peakIndexList = []
+        index = 0
+        # The last 2 samples do not affect the step counting result
+        while index < len(valueList) - 2:
+            value = valueList[index]
+            # We want to find peak value fast
+            if value <= self.maxThreshold:
+                index += 1
+                continue
+            peakIndex, peakValue = self.getNextPeak(valueList, index)
+            # Next index for our algorithm
+            index = peakIndex + 1
+            # Peak in the trough
+            if peakValue <= self.maxThreshold:
+                continue
+            peakTime = timeList[peakIndex]
+            if len(peakValueList) == 0 or peakTime - peakTimeList[-1] >= self.timeThreshold:
+                peakValueList.append(peakValue)
+                peakTimeList.append(peakTime)
+                peakIndexList.append(peakIndex)
+            else:
+                if peakValue >= peakValueList[-1]:
+                    peakValueList[-1] = peakValue
+                    peakTimeList[-1] = peakTime
+                    peakIndexList[-1] = peakIndex
+        # Now we need to find the start point and the end point of each step
+        minThreshold = -0.1 # 这里主要是排除双峰的情况
+        stepIndexList = [] # start1, end1, start2, end2
+        for i in range(len(peakValueList)):
+            peakIndex = peakIndexList[i]
+            startIndex = peakIndex - 1
+            while(startIndex > 2):
+                startIndex, startValue = self.searchTrough(valueList, startIndex, -1)
+                if startValue < minThreshold:
+                    break
+                startIndex = startIndex - 1
+            endIndex = peakIndex + 1
+            while(endIndex < len(valueList) - 2):
+                endIndex, endValue = self.searchTrough(valueList, endIndex, 1)
+                if endValue < minThreshold:
+                    break
+                endIndex = endIndex + 1
+            if len(stepIndexList) > 0 and stepIndexList[-1] > startIndex:
+                continue
+            stepIndexList.append(startIndex)
+            stepIndexList.append(endIndex)
+        return stepIndexList
 
 if __name__ == "__main__" :
     # Accelerometer data for step counting
