@@ -245,13 +245,13 @@ class SimpleStepCounter(object):
                     peakTimeList[-1] = peakTime
                     peakIndexList[-1] = peakIndex
         # Now we need to find the start point and the end point of each step
-        minThreshold = -0.1 # 这里主要是排除双峰的情况
+        minThreshold = -0.1 # To exclude double peak situation
         stepIndexList = [] # start1, end1, start2, end2
         for i in range(len(peakValueList)):
             peakIndex = peakIndexList[i]
             startIndex = peakIndex - 1
             while(startIndex > 2):
-                startIndex, startValue = self.searchTrough(valueList, startIndex, -1)
+                startIndex, startValue = self.searchTrough(valueList, startIndex, False)
                 if startValue < minThreshold:
                     break
                 startIndex = startIndex - 1
