@@ -31,18 +31,24 @@ class PDR(object):
         allIndexList = sc.countStep(acceTimeList, acceValueArray)
         stIndexList = allIndexList[0::3]
         stTimeList = [acceTimeList[i] for i in stIndexList]
-        etIndexList = allIndexList[2::3]
-        etTimeList = [acceTimeList[i] for i in etIndexList]
-        print("Step Num is %d" % len(stIndexList))
-        # get rotation angle
+        edIndexList = allIndexList[2::3]
+        edTimeList = [acceTimeList[i] for i in edIndexList]
+        stepNum = len(stIndexList)
+
+        # Get step length
+        stepFreq = stepNum / (edTimeList[-1] - stTimeList[0])
+        stepLength = para[4] * stepFreq + para[5]
+        print("Step Num is %d, Step Frequency is %.3f and Step Length is %.4f" % (stepNum, stepFreq, stepLength))
+
+        # Get rotation angle
         rotationList = rotationAngle(gyroTimeList, gyroValueList)
+
+        # Estimate locations
         estiLocList = [(0, 0)]
         currentIndex = 0
         for i in range(len(stIndexList)):
             asTime = stTimeList[i]
-            aeTime = etTimeList[i]
-            # Get step length according to frequency model
-            stepLength = para[4] * (1.0 / (aeTime - asTime)) + para[5]
+            aeTime = edTimeList[i]
             rotStartIndex = timeAlign(asTime, gyroTimeList, currentIndex)
             currentIndex = rotStartIndex - 1
             rotEndIndex = timeAlign(aeTime, gyroTimeList, currentIndex)
@@ -67,7 +73,7 @@ if __name__ == "__main__":
     # Get location estimation at experimental path coordination
     myPDR = PDR()
     locEstList = myPDR.getLocEstimation(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
-    locRealList = loadRouteData(locationFilePath)
+    locRealList = loadRouteData(locationFilePath, rotAngle=routeRotation)
     errorList = distError(locRealList, locEstList)
 
     # Save the errors

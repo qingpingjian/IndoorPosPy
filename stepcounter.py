@@ -155,9 +155,9 @@ if __name__ == "__main__" :
     stIndexList = allIndexList[0::3]
     stTimeList = [acceTimeList[i] for i in stIndexList]
     stValueList = [acceValueArray[i] for i in stIndexList]
-    etIndexList = allIndexList[2::3]
-    etTimeList = [acceTimeList[i] for i in etIndexList]
-    etValueList = [acceValueArray[i] for i in etIndexList]
+    edIndexList = allIndexList[2::3]
+    edTimeList = [acceTimeList[i] for i in edIndexList]
+    edValueList = [acceValueArray[i] for i in edIndexList]
 
     print("Num of Step is: %d" % (len(peakIndexList)))
     print("Peak values are below:")
@@ -169,7 +169,7 @@ if __name__ == "__main__" :
     acceLine, = plt.plot(acceTimeList, acceValueArray, lw=1,color="blue", label="Acceleration")
     stepPeaker, = plt.plot(peakTimeList, peakValueList, "rx", ms=10, label="Step Peaks")
     stepStarter, = plt.plot(stTimeList, stValueList, "yx", ms=8, label="Step Starts")
-    stepEnder, = plt.plot(etTimeList, etValueList, "gx", ms=5, label="Step Ends")
+    stepEnder, = plt.plot(edTimeList, edValueList, "gx", ms=5, label="Step Ends")
     # plt.legend(handles=[acceLine, stepPeaker], fontsize=20)
     plt.legend(handles=[acceLine, stepPeaker, stepStarter, stepEnder], fontsize=20)
     plt.show()

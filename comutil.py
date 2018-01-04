@@ -95,6 +95,7 @@ def timeAlign(baseTime, targetTimeList, startIndex = 0):
         for i in range(startIndex + 1, len(targetTimeList)):
             if baseTime < targetTimeList[i]:
                 targetIndex = i if targetTimeList[i] - baseTime < baseTime - targetTimeList[i - 1] else i - 1
+                break
     return targetIndex
 
 

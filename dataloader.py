@@ -77,6 +77,13 @@ def loadRouteData(filePath, transform=True, rotAngle="0"):
     return locationList
 
 
+def saveLocationError(filePath, errorList):
+    with open(filePath, "w") as errorFile:
+        for locErr in errorList:
+            errorFile.write("%.3f\n" % locErr)
+    return
+
+
 if __name__ == "__main__":
     locationFilePath = "./RawData/SimplePDR/20170702210514_route.txt"
     print(loadRouteData(locationFilePath))
