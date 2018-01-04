@@ -54,6 +54,7 @@ def residualsFunc(para, y, x):
     ret = fitFunc(para, x) - y
     return ret
 
+
 if __name__ == "__main__":
     # Pete
     stepLengthList = [72.53, 77.08, 75.97, 79.53, 66.42, 66.53, 76.96, 74.07, 70.89, 72.99, 76.94, 76.27]

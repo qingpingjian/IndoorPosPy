@@ -11,7 +11,7 @@ Created on 2017/12/27 22:03
 import math
 import matplotlib.pyplot as plt
 
-from comutil import butterFilter
+from comutil import butterFilter, modelParameterDict
 from dataloader import loadAcceData
 
 
@@ -145,8 +145,9 @@ if __name__ == "__main__" :
 
     acceValueArray = butterFilter(acceValueList)
 
+    para = modelParameterDict.get("pete")
     # Algorithm of step counter
-    sc = SimpleStepCounter(0.85, -0.1, 0.380, 0.125)
+    sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
     allIndexList = sc.countStep(acceTimeList, acceValueArray)
     peakIndexList = allIndexList[1::3]
     peakTimeList = [acceTimeList[i] for i in peakIndexList]

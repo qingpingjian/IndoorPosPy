@@ -43,8 +43,8 @@ if __name__ == "__main__":
 
     # Plot the function
     plt.grid(True)
-    plt.plot(X2, Y2, marker="o")
     plt.plot(X, Y, "r--", marker="*")
+    plt.plot(X2, Y2, marker="o")
     plt.show()
 
     print("Done.")
