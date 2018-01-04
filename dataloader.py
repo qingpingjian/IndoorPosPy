@@ -8,29 +8,7 @@ Created on 2018/1/1 下午9:04
 @software: PyCharm Community Edition
 """
 import math
-import numpy as np
 import pandas as pd
-import scipy.signal as signal
-
-
-def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
-    """
-    Apply butterworth filter to the raw data
-    :param data: raw data
-    :param fs: sample frequency
-    :param lowcut: low frequency threshold
-    :param highcut: high frequency threshold
-    :param order: butterworth band pass in  order value, 2 by default
-    :return: filtered data
-    """
-    # butter band pass
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    b, a = signal.butter(order, [low, high], btype='band')
-    dataArray = np.array(data).astype(np.float)
-    y = signal.lfilter(b, a, dataArray)
-    return y
 
 
 def loadAcceData(filePath, relativeTime = True):
