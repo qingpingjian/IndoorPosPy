@@ -18,7 +18,7 @@ from stepcounter import SimpleStepCounter
 
 
 class PDR(object):
-    def __init__(self, personID="pete", ):
+    def __init__(self, personID="pete"):
         self.personID = personID
         return
 
