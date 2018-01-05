@@ -41,5 +41,13 @@ def loadGyroData(filePath, relativeTime = True):
     return gyroTimeList, gyroValueList
 
 
+def loadRadioMap(filePath):
+    radioMapDF = pd.read_csv(filePath)
+
+
+def loadWifiTest(filePath):
+    wifiTestDF = pd.read_csv(filePath)
+
+
 if __name__ == "__main__":
     print("Done.")
