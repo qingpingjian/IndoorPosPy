@@ -41,6 +41,15 @@ def loadGyroData(filePath, relativeTime = True):
     return gyroTimeList, gyroValueList
 
 
+def loadWifiScan(filePath, num=15):
+    wifiScanDF = pd.read_csv(filePath)
+    wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy","wifiinfos"]]
+    userID = wifiScanInfo.iloc[0, 0]
+    loc = (wifiScanInfo.iloc[0, 1], wifiScanInfo.iloc[0, 2])
+    wifiScanDict = {userID: {}}
+    pass
+
+
 def loadRadioMap(filePath):
     radioMapDF = pd.read_csv(filePath)
 
