@@ -9,11 +9,12 @@ Created on 2018/1/2 10:53
 """
 
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
 from comutil import *
-from dataloader import loadAcceData, loadGyroData, loadRouteData, saveLocationError
+from dataloader import loadAcceData, loadGyroData
 from stepcounter import SimpleStepCounter
 
 
@@ -61,25 +62,61 @@ class PDR(object):
             estiLocList.append((xLoc, yLoc))
         return estiLocList
 
+    def locTransform(self, originLocList, rotStr, moveVector):
+        newLocList = []
+        for loc in originLocList:
+            x = y = 0
+            # clockwise rotation first
+            if rotStr == "0":
+                x = loc[0]
+                y = loc[1]
+            elif (rotStr == "90"):
+                x = - loc[1]
+                y = loc[0]
+            elif rotStr == "180":
+                x = 0.0 - loc[0]
+                y = 0.0 - loc[1]
+            elif rotStr == "270":
+                x = loc[1]
+                y = 0.0 - loc[0]
+            newLocList.append((moveVector[0] + x, moveVector[1] + y))
+        return newLocList
+
 
 if __name__ == "__main__":
-    sensorFilePath = ("./RawData/SimplePDR/20170702210514_acce.txt", "./RawData/SimplePDR/20170702210514_gyro.txt")
-    locationFilePath = "./RawData/SimplePDR/20170702210514_route.txt"
+    sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.txt", "./Examples/SimplePDR/20170702210514_gyro.txt")
+    locationFilePath = "./Examples/SimplePDR/20170702210514_route.txt"
+    estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.txt"
     routeRotation = "0"
+    moveVector = (0, 0)
 
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
     gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
 
-    # Get location estimation at experimental path coordination
+    # Get location estimation at global coordination
     myPDR = PDR()
     locEstList = myPDR.getLocEstimation(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
-    locRealList = loadRouteData(locationFilePath, rotAngle=routeRotation)
+    # From the local route coordinate to global coordinate
+    locEstList = myPDR.locTransform(locEstList, routeRotation, moveVector)
+
+    # Save the estimate locations
+    locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in locEstList]
+    locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)"])
+    locEstDF.to_csv(estimationFilePath, encoding='utf-8', index=False)
+
+    # load real locations
+    locRealDF = pd.read_csv(locationFilePath)
+
+    # Calculate the location errors
+    locRealList = [(loc[0], loc[1]) for loc in locRealDF.values]
     errorList = distError(locRealList, locEstList)
 
     # Save the errors
+    errorList = [round(err * 1000) / 1000 for err in errorList]
     errorFilePath = "%s_error.txt" % locationFilePath[0:-4]
-    saveLocationError(errorFilePath, errorList)
+    errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
+    errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
 
     # Show the errors
     pdrxMajorLocator = MultipleLocator(10)

@@ -135,7 +135,7 @@ class SimpleStepCounter(object):
 
 if __name__ == "__main__" :
     # Accelerometer data for step counting
-    acceDataFilePath = "./RawData/StepCounter/20170707201405_acce.txt"
+    acceDataFilePath = "./Examples/StepCounter/20170707201405_acce.txt"
 
     acceTimeList, acceValueList = loadAcceData(acceDataFilePath)
 
