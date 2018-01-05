@@ -8,5 +8,8 @@ Created on 2018/1/5 15:17
 @software: PyCharm Community Edition
 """
 
+from sklearn.neighbors import KNeighborsRegressor
+
+
 if __name__ == "__main__":
     print("Done.")
