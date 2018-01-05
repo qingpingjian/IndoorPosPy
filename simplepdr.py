@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
 from comutil import *
-from dataloader import loadAcceData, loadGyroData, loadRouteData
+from dataloader import loadAcceData, loadGyroData, loadRouteData, saveLocationError
 from stepcounter import SimpleStepCounter
 
 
@@ -49,6 +49,7 @@ class PDR(object):
         for i in range(len(stIndexList)):
             asTime = stTimeList[i]
             aeTime = edTimeList[i]
+            # stepLength = para[4] * (1.0 / (aeTime - asTime)) +  para[5]
             rotStartIndex = timeAlign(asTime, gyroTimeList, currentIndex)
             currentIndex = rotStartIndex - 1
             rotEndIndex = timeAlign(aeTime, gyroTimeList, currentIndex)
@@ -77,7 +78,8 @@ if __name__ == "__main__":
     errorList = distError(locRealList, locEstList)
 
     # Save the errors
-    # TODO: save the errors
+    errorFilePath = "%s_error.txt" % locationFilePath[0:-4]
+    saveLocationError(errorFilePath, errorList)
 
     # Show the errors
     pdrxMajorLocator = MultipleLocator(10)
