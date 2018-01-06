@@ -10,6 +10,8 @@ Created on 2018/1/1 下午9:04
 import math
 import pandas as pd
 
+from wififunc import wifiStrAnalysis
+
 
 def loadAcceData(filePath, relativeTime = True):
     gravity = 9.411869  # Expect value of holding mobile phone static
@@ -46,8 +48,12 @@ def loadWifiScan(filePath, num=15):
     wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy","wifiinfos"]]
     userID = wifiScanInfo.iloc[0, 0]
     loc = (wifiScanInfo.iloc[0, 1], wifiScanInfo.iloc[0, 2])
-    wifiScanDict = {userID: {}}
-    pass
+    wifiScanDict = {userID: [[], []]}
+    count = int(math.ceil((1.0 * wifiScanInfo.shape[0]) / num))
+    for i in range(count):
+        wifiScanDict.get(userID)[0].append(loc)
+        wifiScanDict.get(userID)[1].append(wifiStrAnalysis(wifiScanInfo.ix[0 + i * num : 15 + i * num, "wifiinfos"].values))
+    return wifiScanDict
 
 
 def loadRadioMap(filePath):
@@ -59,4 +65,6 @@ def loadWifiTest(filePath):
 
 
 if __name__ == "__main__":
+    # wifiScanFilePath = "./RawData/RadioMap/20180104202838_wifi.csv"
+    # print (loadWifiScan(wifiScanFilePath))
     print("Done.")

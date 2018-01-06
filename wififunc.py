@@ -9,16 +9,21 @@ Created on 2017/11/10 上午1:00
 """
 
 import math
+import numpy as np
 
-def wifiStrAnalysis(wifiStr):
+def wifiStrAnalysis(wifiStrList):
     """
-    :param wifiStr: e.g. f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52
-    :return: {"f4:cb:52:00:4e:68": -40, "f4:cb:52:00:4e:64": -30, "9c:21:6a:7f:bf:7c": -52}
+    :param wifiStrList: e.g. [f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52]
+    :return: {"f4:cb:52:00:4e:68": [-40], "f4:cb:52:00:4e:64": [-30], "9c:21:6a:7f:bf:7c": [-52]}
     """
     wifiDict = {}
-    wifiList = [wifiRecord.split("|") for wifiRecord in wifiStr.split(';')]
-    for wifi in wifiList:
-        wifiDict[wifi[0]]=float(wifi[1])
+    for wifiStr in wifiStrList:
+        wifiList = [wifiRecord.split("|") for wifiRecord in wifiStr.split(';')]
+        for wifi in wifiList:
+            if wifiDict.has_key(wifi[0]):
+                wifiDict.get(wifi[0]).append(float(wifi[1]))
+            else:
+                wifiDict[wifi[0]]=[float(wifi[1])]
     return wifiDict
 
 
@@ -37,12 +42,12 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=8, wifiDefault=-100.0):
         baseID = baseWifi[0]
         baseValue = baseWifi[1]
         compValue = wifiDefault if not compWifiDict.has_key(baseID) else compWifiDict.get(baseID)
-        eulerDist += math.pow(baseValue - compValue, 2)
+        eulerDist += math.pow(np.mean(baseValue) - np.mean(compValue), 2)
     return math.sqrt(eulerDist)
 
 
 if __name__ == "__main__":
     wifiInfoFir = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52"
     wifiInfoSec = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-57"
-    print(eulerDistanceA(wifiStrAnalysis(wifiInfoFir), wifiStrAnalysis(wifiInfoSec)))
+    print(eulerDistanceA(wifiStrAnalysis([wifiInfoFir]), wifiStrAnalysis([wifiInfoSec])))
     print("Done.")
