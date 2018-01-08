@@ -8,6 +8,7 @@ Created on 2018/1/1 下午9:04
 @software: PyCharm Community Edition
 """
 import math
+import os
 import pandas as pd
 
 from wififunc import wifiStrAnalysis
@@ -56,11 +57,24 @@ def loadWifiScan(filePath, num=15):
     return wifiScanDict
 
 
-def loadRadioMap(filePath):
-    radioMapDF = pd.read_csv(filePath)
+def loadRadioMap(trainFileDir):
+    if not os.path.isdir(trainFileDir):
+        return None
+    radioMapDict = {}
+    for rt, dirs, files in os.walk(trainFileDir):
+        for fileName in files:
+            if fileName.endswith("wifi.csv"):
+                scanWifiDict = loadWifiScan(os.path.join(trainFileDir, fileName))
+                for userID in scanWifiDict.keys():
+                    if radioMapDict.has_key(userID):
+                        radioMapDict.get(userID)[0].extend(scanWifiDict.get(userID)[0])
+                        radioMapDict.get(userID)[1].extend(scanWifiDict.get(userID)[1])
+                    else:
+                        radioMapDict[userID] = scanWifiDict.get(userID)
+    return radioMapDict
 
 
-def loadWifiTest(filePath):
+def loadWifiTest(testFileDir):
     wifiTestDF = pd.read_csv(filePath)
 
 
