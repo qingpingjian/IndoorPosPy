@@ -27,7 +27,7 @@ def wifiStrAnalysis(wifiStrList):
     return wifiDict
 
 
-def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=8, wifiDefault=-100.0):
+def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     """
     calculate the euler distance between test data and train data, while test data is baseline
     :param baseWifiDict: test wifi data
@@ -44,6 +44,10 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=8, wifiDefault=-100.0):
         compValue = wifiDefault if not compWifiDict.has_key(baseID) else compWifiDict.get(baseID)
         eulerDist += math.pow(np.mean(baseValue) - np.mean(compValue), 2)
     return math.sqrt(eulerDist)
+
+
+def bayesProbability(baseWifiDict):
+    pass
 
 
 if __name__ == "__main__":

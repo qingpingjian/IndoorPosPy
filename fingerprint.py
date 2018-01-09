@@ -22,10 +22,9 @@ class KNNLocation(object):
         self.nNeighbours = nNeighbours
         self.apNum = apNum
         self.wifiDefault = wifiDefault
-        pass
 
     def weightedMean(self, eulerDistList):
-        eulerWeightList = [1.0 / eulerDist[1] for eulerDist in eulerDistList]
+        eulerWeightList = [eulerDist[1] for eulerDist in eulerDistList]
         weightSum = np.sum(eulerWeightList)
         eulerWeightList = [ew / weightSum for ew in eulerWeightList]
         xWeight = 0.0
@@ -45,8 +44,10 @@ class KNNLocation(object):
         for i in range(len(wifiTestList[0])):
             eulerDistList = []
             for j in range(len(wifiTrainList[0])):
+                # []
                 eulerDistList.append((wifiTrainList[0][j], eulerDistanceA(wifiTestList[1][i], wifiTrainList[1][j], self.apNum, self.wifiDefault)))
-            estLoc = self.weightedMean(sorted(eulerDistList, key=lambda x: x[1])[0:self.nNeighbours])
+            topKDistList = sorted(eulerDistList, key=lambda x: x[1])[0:self.nNeighbours]
+            estLoc = self.weightedMean([(eulerDist[0], 1.0 / eulerDist[1]) for eulerDist in topKDistList])
             estimateList.append((wifiTestList[0][i][0], wifiTestList[0][i][1], estLoc[0], estLoc[1]))
         return estimateList
 
@@ -76,6 +77,14 @@ class KNNLocation(object):
                 wifiTrainList = wifiTrainDict.get(userID)
                 estimateList.extend(self.knnAlg(wifiTestList, wifiTrainList))
         return estimateList
+
+
+class BayesLocation(KNNLocation):
+    def __init__(self, nNeighbours=5, apNum=7, wifiDefault=-100.0):
+        KNNLocation.__init__(self, nNeighbours, apNum, wifiDefault)
+
+    def bayesAlg(self, wifiTestList, wifiTrainList):
+        pass
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ Created on 2018/1/1 下午9:04
 @software: PyCharm Community Edition
 """
 import math
+import numpy as np
 import os
 import pandas as pd
 
@@ -44,31 +45,41 @@ def loadGyroData(filePath, relativeTime = True):
     return gyroTimeList, gyroValueList
 
 
-def loadWifiScan(filePath, num=15):
+def loadWifiScan(filePath, num=15, stat=False):
     wifiScanDF = pd.read_csv(filePath)
-    wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy","wifiinfos"]]
+    wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy", "wifiinfos"]]
     userID = wifiScanInfo.iloc[0, 0]
     loc = (wifiScanInfo.iloc[0, 1], wifiScanInfo.iloc[0, 2])
-    wifiScanDict = {userID: [[], []]}
+    wifiScanDict = {userID: [[], [], []]}
     count = int(math.ceil((1.0 * wifiScanInfo.shape[0]) / num))
     for i in range(count):
         wifiScanDict.get(userID)[0].append(loc)
-        wifiScanDict.get(userID)[1].append(wifiStrAnalysis(wifiScanInfo.ix[0 + i * num : 15 + i * num, "wifiinfos"].values))
+        wifiDict = wifiStrAnalysis(wifiScanInfo.ix[0 + i * num : 15 + i * num, "wifiinfos"].values)
+        wifiScanDict.get(userID)[1].append(wifiDict)
+        if stat:
+            wifiStatDict = {}
+            for wifi in wifiDict.keys():
+                rssList = wifiDict.get(wifi)
+                # std VS 3.0: Optimal calculation for bayes algorithm according to noise
+                wifiStatDict[wifi] = (np.mean(rssList), np.max((np.std(rssList), 3.0)))
+            wifiScanDict.get(userID)[2].append(wifiStatDict)
     return wifiScanDict
 
 
-def loadRadioMap(trainFileDir):
+def loadRadioMap(trainFileDir, statFlag=False):
     if not os.path.isdir(trainFileDir):
         return None
     radioMapDict = {}
     for rt, dirs, files in os.walk(trainFileDir):
         for fileName in files:
             if fileName.endswith("wifi.csv"):
-                scanWifiDict = loadWifiScan(os.path.join(trainFileDir, fileName))
+                scanWifiDict = loadWifiScan(os.path.join(trainFileDir, fileName), num=15, stat=statFlag)
                 for userID in scanWifiDict.keys():
                     if radioMapDict.has_key(userID):
                         radioMapDict.get(userID)[0].extend(scanWifiDict.get(userID)[0])
                         radioMapDict.get(userID)[1].extend(scanWifiDict.get(userID)[1])
+                        if statFlag:
+                            radioMapDict.get(userID)[2].extend(scanWifiDict.get(userID)[2])
                     else:
                         radioMapDict[userID] = scanWifiDict.get(userID)
     return radioMapDict
