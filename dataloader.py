@@ -75,7 +75,20 @@ def loadRadioMap(trainFileDir):
 
 
 def loadWifiTest(testFileDir):
-    wifiTestDF = pd.read_csv(filePath)
+    if not os.path.isdir(testFileDir):
+        return None
+    wifiTestDict = {}
+    for rt, dirs, files in os.walk(testFileDir):
+        for fileName in files:
+            if fileName.endswith("wifi.csv"):
+                scanWifiDict = loadWifiScan(os.path.join(testFileDir, fileName), num=10)
+                for userID in scanWifiDict.keys():
+                    if wifiTestDict.has_key(userID):
+                        wifiTestDict.get(userID)[0].extend(scanWifiDict.get(userID)[0])
+                        wifiTestDict.get(userID)[1].extend(scanWifiDict.get(userID)[1])
+                    else:
+                        wifiTestDict[userID] = scanWifiDict.get(userID)
+    return wifiTestDict
 
 
 if __name__ == "__main__":
