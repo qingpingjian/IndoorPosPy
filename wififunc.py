@@ -11,6 +11,8 @@ Created on 2017/11/10 上午1:00
 import math
 import numpy as np
 
+from scipy import stats
+
 def wifiStrAnalysis(wifiStrList):
     """
     :param wifiStrList: e.g. [f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52]
@@ -33,11 +35,11 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     :param baseWifiDict: test wifi data
     :param compWifiDict: train wifi data
     :param wifiNum: the wifi numbers to calculate euler distance
-    :param wifiDefault: wifi default value
+    :param wifiDefault: default rss value if we do not receive the signal
     :return: euler distance
     """
     eulerDist = 0.0
-    baseWifiList = sorted(baseWifiDict.iteritems(), key=lambda d: d[1], reverse=True)[0:wifiNum]
+    baseWifiList = sorted(baseWifiDict.iteritems(), key=lambda d: np.mean(d[1]), reverse=True)[0:wifiNum]
     for baseWifi in baseWifiList:
         baseID = baseWifi[0]
         baseValue = baseWifi[1]
@@ -46,12 +48,29 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     return math.sqrt(eulerDist)
 
 
-def bayesProbability(baseWifiDict):
-    pass
+def bayesProbability(baseWifiDict, compGaussianDict, wifiNum=7, wifiDefault=-100.0):
+    """
+    calculate the log gassian probability of test data comparing with train data
+    :param baseWifiDict: test wifi data
+    :param compGaussianDict: train wifi distribution parameters
+    :param wifiNum: the wifi numbers to calculate bayes probability
+    :param wifiDefault: default rss value if we do not receive the signal
+    :return: bayes probability
+    """
+    logGaussian = 0.0
+    baseWifiList = sorted(baseWifiDict.iteritems(), key=lambda d: np.mean(d[1]), reverse=True)[0:wifiNum]
+    for baseWifi in baseWifiList:
+        baseID = baseWifi[0]
+        baseValue = np.mean(baseWifi[1])
+        meanValue, stdValue = compGaussianDict.get(baseID) if compGaussianDict.has_key(baseID) else (wifiDefault, 3.0)
+        logGaussian += stats.norm.logpdf(baseValue, loc=meanValue, scale=stdValue)
+    # math.exp(logGaussian) is too small
+    return logGaussian
 
 
 if __name__ == "__main__":
     wifiInfoFir = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52"
     wifiInfoSec = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-57"
-    print(eulerDistanceA(wifiStrAnalysis([wifiInfoFir]), wifiStrAnalysis([wifiInfoSec])))
+    wifiInfoThd = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-53"
+    print(eulerDistanceA(wifiStrAnalysis([wifiInfoFir, wifiInfoThd]), wifiStrAnalysis([wifiInfoSec])))
     print("Done.")

@@ -99,6 +99,25 @@ def timeAlign(baseTime, targetTimeList, startIndex = 0):
     return targetIndex
 
 
+def meanLocation(weightedLocList, weightedMean=True):
+    """
+    Calculate the mean location based on weighted parameter
+    :param weightedLocList: [((x1, y1), w1), ((x2, y2), w2)]
+    :param weightedMean: if this is true, we calculate mean values using weight parameters
+    :return: mean location
+    """
+    weightList = np.ones(len(weightedLocList)) / len(weightedLocList)
+    if weightedMean:
+        weightList = np.array([wgtLoc[1] for wgtLoc in weightedLocList])
+        weightList /= np.sum(weightList)
+    xWeight = 0.0
+    yWeight = 0.0
+    for i in range(len(weightedLocList)):
+        xWeight += weightedLocList[i][0][0] * weightList[i]
+        yWeight += weightedLocList[i][0][1] * weightList[i]
+    return (xWeight, yWeight)
+
+
 def distError(realList, estiList):
     errorList = []
     for i in range(len(realList)):
