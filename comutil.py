@@ -37,6 +37,19 @@ def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
     return y
 
 
+def slidingWindowFilter(timeList, valueList, windowSize):
+    midPos = (windowSize - 1) / 2
+    currentIndex = 0
+    dataLength = np.min((len(timeList), len(valueList)))
+    timeFList = timeList[0:dataLength]
+    valueFList = []
+    valueFList.extend(valueList[currentIndex:currentIndex + midPos])
+    valueFList.extend([np.mean(valueList[i - midPos : i + midPos + 1])
+                       for i in range(currentIndex + midPos, dataLength - midPos)])
+    valueFList.extend(valueList[dataLength - midPos:dataLength])
+    return timeFList, valueFList
+
+
 def angleNormalize(angle):
     """
     Keep angle in {0, 2pi)
