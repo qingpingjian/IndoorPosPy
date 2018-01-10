@@ -140,6 +140,7 @@ if __name__ == "__main__":
 
     # print(sorted(knnErrorList))
     X1, Y1 = cdf(knnErrorList)
+    print("The mean location error is %.3f" % np.mean(knnErrorList))
 
     # Native Bayes location algorithm
     firstBayes = BayesLocation(apNum=15)
@@ -154,6 +155,7 @@ if __name__ == "__main__":
 
     print(sorted(bayesErrorList))
     X2, Y2 = cdf(bayesErrorList)
+    print("The mean location error is %.3f" % np.mean(bayesErrorList))
 
     # Show error CDF
     fig = plt.figure()
