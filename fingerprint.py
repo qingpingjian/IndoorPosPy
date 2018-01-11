@@ -161,7 +161,7 @@ if __name__ == "__main__":
     fig = plt.figure()
     knnAxe = fig.add_subplot(111)
     knnAxe.set_xlabel("$Position\ Error(m)$")
-    knnAxe.set_ylabel("$Probability$")
+    knnAxe.set_ylabel("$Cumulative\ Probability$")
     knnAxe.plot(X1, Y1, color="r", label="kNN")
     knnAxe.plot(X2, Y2, color="b", label="Native Bayes")
 
