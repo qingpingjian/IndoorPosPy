@@ -112,6 +112,52 @@ def timeAlign(baseTime, targetTimeList, startIndex = 0):
     return targetIndex
 
 
+def locTransformR2W(relLoc, moveVector, rotStr):
+    """
+    Transform relative coordinate to world coordinate.
+    First rotate the relative coordinate to world coordinate.
+    Then move to the world origin point: moveVector + relLoc_Rotated
+    :param relLoc: relative location
+    :param moveVector: moving vector at world coordinate
+    :param rotStr: clockwise rotation angle in degree
+    :return: location at world coordinate
+    """
+    rotedLoc = relLoc
+    # clockwise rotation first
+    if rotStr == "90":
+        x = - relLoc[1]
+        y = relLoc[0]
+    elif rotStr == "180":
+        x = - relLoc[0]
+        y = - relLoc[1]
+    elif rotStr == "270":
+        x = relLoc[1]
+        y = - relLoc[0]
+    return (moveVector[0] + rotedLoc[0], moveVector[1] + rotedLoc[1])
+
+
+def locTransformW2R(worldLoc, moveVector, rotStr):
+    """
+    Transform world coordinate to relative coordinate.
+    First move to the relative origin point: worldLoc - moveVector
+    Then rotate the world coordinate to relative coordinate.
+    :param worldLoc: world location
+    :param moveVector: moving vector at world coordinate
+    :param rotStr: clockwise rotation angle in degree
+    :return: location at relative coordinate
+    """
+    x = worldLoc[0] - moveVector[0]
+    y = worldLoc[1] - moveVector[1]
+    relLoc = (x, y)
+    if rotStr == "90":
+        relLoc = (-y, x)
+    elif rotStr == "180":
+        relLoc = (-x, -y)
+    elif rotStr == "270":
+        relLoc = (y, -x)
+    return relLoc
+
+
 def meanLocation(weightedLocList, weightedMean=True):
     """
     Calculate the mean location based on weighted parameter

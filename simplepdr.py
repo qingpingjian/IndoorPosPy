@@ -62,32 +62,32 @@ class PDR(object):
             estiLocList.append((xLoc, yLoc))
         return estiLocList
 
-    def locTransform(self, originLocList, rotStr, moveVector):
-        newLocList = []
-        for loc in originLocList:
-            x = y = 0
-            # clockwise rotation first
-            if rotStr == "0":
-                x = loc[0]
-                y = loc[1]
-            elif (rotStr == "90"):
-                x = - loc[1]
-                y = loc[0]
-            elif rotStr == "180":
-                x = 0.0 - loc[0]
-                y = 0.0 - loc[1]
-            elif rotStr == "270":
-                x = loc[1]
-                y = 0.0 - loc[0]
-            newLocList.append((moveVector[0] + x, moveVector[1] + y))
-        return newLocList
+    # def locTransform(self, originLocList, rotStr, moveVector):
+    #     newLocList = []
+    #     for loc in originLocList:
+    #         x = y = 0
+    #         # clockwise rotation first
+    #         if rotStr == "0":
+    #             x = loc[0]
+    #             y = loc[1]
+    #         elif (rotStr == "90"):
+    #             x = - loc[1]
+    #             y = loc[0]
+    #         elif rotStr == "180":
+    #             x = 0.0 - loc[0]
+    #             y = 0.0 - loc[1]
+    #         elif rotStr == "270":
+    #             x = loc[1]
+    #             y = 0.0 - loc[0]
+    #         newLocList.append((moveVector[0] + x, moveVector[1] + y))
+    #     return newLocList
 
 
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.txt", "./Examples/SimplePDR/20170702210514_gyro.txt")
     locationFilePath = "./Examples/SimplePDR/20170702210514_route.txt"
     estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.txt"
-    routeRotation = "0"
+    routeRotClockWise = "0"
     moveVector = (0, 0)
 
     # Load sensor data from files
@@ -96,12 +96,13 @@ if __name__ == "__main__":
 
     # Get location estimation at global coordination
     myPDR = PDR()
-    locEstList = myPDR.getLocEstimation(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
-    # From the local route coordinate to global coordinate
-    locEstList = myPDR.locTransform(locEstList, routeRotation, moveVector)
+    locEstRelList = myPDR.getLocEstimation(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
+    # From the relative route coordinate to global coordinate
+    # locEstWorldList = myPDR.locTransform(locEstRelList, routeRotClockWise, moveVector)
+    locEstWorldList = [locTransformR2W(relLoc, moveVector, routeRotClockWise) for relLoc in locEstRelList]
 
     # Save the estimate locations
-    locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in locEstList]
+    locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in locEstWorldList]
     locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)"])
     locEstDF.to_csv(estimationFilePath, encoding='utf-8', index=False)
 

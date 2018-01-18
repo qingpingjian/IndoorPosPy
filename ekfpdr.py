@@ -10,8 +10,8 @@ Created on 2018/1/18 14:46
 
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/ExtendedKF/20180118102918_acce.csv", "./Examples/ExtendedKF/20180118102918_gyro.csv")
+    wifiFilePath = "./Examples/ExtendedKF/20180118102918_wifi.csv"
     trainFileDir = "./RawData/RadioMap"
-    testFileDir = "./Examples/ExtendedKF"
     locationFilePath = "./Examples/ExtendedKF/20180118102918_route.csv"
     pdrEstimateFilePath = "./Examples/ExtendedKF/20180118102918_estimate_pdr.csv"
     ekfEstimateFilePath = "./Examples/ExtendedKF/20180118102918_estimate_ekf.csv"
