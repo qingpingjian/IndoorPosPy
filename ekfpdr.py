@@ -8,6 +8,40 @@ Created on 2018/1/18 14:46
 @software: PyCharm Community Edition
 """
 
+import numpy as np
+
+from simplepdr import PDR
+
+class ExtendedKF(object):
+    def __init__(self, initState, processCov, dimState, observeTransfer, observeCov):
+        """
+        :param initState: (0.0, init_X, init_Y)
+        :param processCov: (2.15 * pi / 180, 0.683, 0.683)
+        :param dimState: 3
+        :param observeTransfer: [[0,1,0],[0,0,1]]
+        :param observeCov: (6.15,6.15)
+        """
+        self.dim_state = dimState
+        self.estimate = initState
+        self.previousEstimate = initState
+        self.Q = processCov  # process noise covariance
+        self.P = np.identity(dimState)
+        self.previousP = np.identity(dimState)
+
+        self.H = observeTransfer
+        self.R = observeCov
+        self.gain = np.dot(np.identity(dimState), np.transpose(observeTransfer))
+
+
+
+class EKFPDR(PDR):
+    def __init__(self, personID="pete"):
+        PDR.__init__(self, personID)
+
+    def getLocFusion(self, acceTimeList, acceValueList, gyroTimeList, gyroValueList,
+                     wifiTimeList, wifiScanList, wifiTrainList):
+        pass
+
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/ExtendedKF/20180118102918_acce.csv", "./Examples/ExtendedKF/20180118102918_gyro.csv")
     wifiFilePath = "./Examples/ExtendedKF/20180118102918_wifi.csv"

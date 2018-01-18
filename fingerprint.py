@@ -81,12 +81,21 @@ class BayesLocation(object):
         """
         estimateList = []
         for i in range(len(wifiTestList[0])):
-            bayesProbList = []
-            for j in range(len(wifiTrainList[0])):
-                bayesProbList.append((wifiTrainList[0][j], bayesProbability(wifiTestList[1][i], wifiTrainList[1][j], self.apNum, self.wifiDefault)))
-            estLoc = meanLocation(sorted(bayesProbList, key=lambda x: x[1], reverse=True)[0:self.nNeighbours], weightedMean=False)
+            estLoc = self.bayesAlg2(wifiTestList[1][i], wifiTrainList)
+            # bayesProbList = []
+            # for j in range(len(wifiTrainList[0])):
+            #     bayesProbList.append((wifiTrainList[0][j], bayesProbability(wifiTestList[1][i], wifiTrainList[1][j], self.apNum, self.wifiDefault)))
+            # estLoc = meanLocation(sorted(bayesProbList, key=lambda x: x[1], reverse=True)[0:self.nNeighbours], weightedMean=False)
             estimateList.append((wifiTestList[0][i][0], wifiTestList[0][i][1], estLoc[0], estLoc[1]))
         return estimateList
+
+    def bayesAlg2(self, wifiDict, wifiTrainList):
+        bayesProbList = []
+        for j in range(len(wifiTrainList[0])):
+            bayesProbList.append((wifiTrainList[0][j],
+                                  bayesProbability(wifiDict, wifiTrainList[1][j], self.apNum,
+                                                   self.wifiDefault)))
+        return meanLocation(sorted(bayesProbList, key=lambda x: x[1], reverse=True)[0:self.nNeighbours], weightedMean=False)
 
     def estimation(self, wifiTestDict, wifiTrainDict, multiDevice=False):
         wifiTestList = []

@@ -45,6 +45,17 @@ def loadGyroData(filePath, relativeTime = True):
     return gyroTimeList, gyroValueList
 
 
+def loadMovingWifi(wifiFilePath):
+    wifiScanDF = pd.read_csv(wifiFilePath)
+    wifiScanInfo = wifiScanDF.ix[:, ["timestamp", "wifiinfos"]]
+    wifiTimeList = []
+    wifiScanList = []
+    for wifiRecord in wifiScanInfo.values:
+        wifiTimeList.append(wifiRecord[0])
+        wifiScanList.append(wifiRecord[1])
+    return wifiTimeList, wifiScanList
+
+
 def loadWifiScan(filePath, num=15, stat=False):
     wifiScanDF = pd.read_csv(filePath)
     wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy", "wifiinfos"]]

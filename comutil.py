@@ -12,6 +12,8 @@ import numpy as np
 import scipy.signal as signal
 import sys
 
+from wififunc import wifiStrAnalysis
+
 modelParameterDict = {
     "pete": (0.85, -0.1, 0.380, 0.125, 0.28927316, 0.21706846),
     "super": (0.85, -0.1, 0.380, 0.125, 0.21853894, 0.46235461)
@@ -110,6 +112,31 @@ def timeAlign(baseTime, targetTimeList, startIndex = 0):
                 targetIndex = i if targetTimeList[i] - baseTime < baseTime - targetTimeList[i - 1] else i - 1
                 break
     return targetIndex
+
+
+def wifiExtract(startTime, endTime, wifiTimeList, wifiScanList, startIndex=0):
+    """
+    Get Wi-Fi scan record according start timestamp and end timestamp
+    :param startTime: start timestamp
+    :param endTime:  end timestamp
+    :param wifiTimeList:  wifi timestamp list
+    :param wifiScanList:  Wi-Fi scan results list
+    :param startIndex:  the starting searching index
+    :return: nextIndex, {mac1:[rss1,rss2], mac2:[rss3, rss4]} or None
+    """
+    # check the input parameter
+    if endTime <= startTime or wifiTimeList[startIndex] > endTime or wifiTimeList[-1] < startTime:
+        return startIndex, None
+    wifiRecordList = []
+    nextIndex = startIndex
+    for x in range(startIndex, len(wifiTimeList)):
+        if wifiTimeList[x] >= startTime and wifiTimeList[x] <= endTime:
+            wifiRecordList.append(wifiScanList[x])
+            nextIndex = x + 1
+            continue
+        if wifiTimeList[x] > endTime:
+            break
+    return nextIndex, wifiStrAnalysis(wifiRecordList)
 
 
 def locTransformR2W(relLoc, moveVector, rotStr):

@@ -18,6 +18,8 @@ def wifiStrAnalysis(wifiStrList):
     :param wifiStrList: e.g. [f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52]
     :return: {"f4:cb:52:00:4e:68": [-40], "f4:cb:52:00:4e:64": [-30], "9c:21:6a:7f:bf:7c": [-52]}
     """
+    if len(wifiStrList) == 0:
+        return None
     wifiDict = {}
     for wifiStr in wifiStrList:
         wifiList = [wifiRecord.split("|") for wifiRecord in wifiStr.split(';')]
