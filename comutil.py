@@ -15,8 +15,8 @@ import sys
 from wififunc import wifiStrAnalysis
 
 modelParameterDict = {
-    "pete": (0.85, -0.1, 0.380, 0.125, 0.28927316, 0.21706846),
-    "super": (0.85, -0.1, 0.380, 0.125, 0.21853894, 0.46235461)
+    "pete": (0.85, -0.1, 380, 125, 0.28927316, 0.21706846),
+    "super": (0.85, -0.1, 380, 125, 0.21853894, 0.46235461)
 }
 
 def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):

@@ -18,7 +18,7 @@ from wififunc import wifiStrAnalysis
 def loadAcceData(filePath, relativeTime = True):
     gravity = 9.411869  # Expect value of holding mobile phone static
     acceDF = pd.read_csv(filePath)
-    acceInfo = acceDF.ix[:,['Time(s)', 'acce_x', 'acce_y', 'acce_z']]
+    acceInfo = acceDF.ix[:,['timestamp', 'acce_x', 'acce_y', 'acce_z']]
     acceTimeList = []
     acceValueList = []
     for acceRecord in acceInfo.values:

@@ -135,7 +135,7 @@ class SimpleStepCounter(object):
 
 if __name__ == "__main__" :
     # Accelerometer data for step counting
-    acceDataFilePath = "./Examples/StepCounter/20170707201405_acce.txt"
+    acceDataFilePath = "./Examples/StepCounter/20170707201405_acce.csv"
 
     acceTimeList, acceValueList = loadAcceData(acceDataFilePath)
 
@@ -149,6 +149,10 @@ if __name__ == "__main__" :
     # Algorithm of step counter
     sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
     allIndexList = sc.countStep(acceTimeList, acceValueArray)
+
+    # Transform from milliseconds to seconds
+    acceTimeList = [t / 1000.0 for t in acceTimeList]
+
     peakIndexList = allIndexList[1::3]
     peakTimeList = [acceTimeList[i] for i in peakIndexList]
     peakValueList = [acceValueArray[i] for i in peakIndexList]
@@ -170,7 +174,6 @@ if __name__ == "__main__" :
     stepPeaker, = plt.plot(peakTimeList, peakValueList, "rx", ms=10, label="Step Peaks")
     stepStarter, = plt.plot(stTimeList, stValueList, "yx", ms=8, label="Step Starts")
     stepEnder, = plt.plot(edTimeList, edValueList, "gx", ms=5, label="Step Ends")
-    # plt.legend(handles=[acceLine, stepPeaker], fontsize=20)
     plt.legend(handles=[acceLine, stepPeaker, stepStarter, stepEnder], fontsize=20)
     plt.show()
     print("Done.")
