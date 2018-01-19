@@ -20,14 +20,14 @@ def showImage(filePath, locationDataFiles):
     draw = ImageDraw.Draw(im)
 
     # Load positioning data and draw locations
-    # colors = ((0, 255, 0), (255, 0, 0), (255, 127, 0), (0, 127, 255))
-    # for i, locFile in enumerate(locationDataFiles):
-    #     locDF = pd.read_csv(locFile)
-    #     locList = [(loc[0] * (730 / 7.08) + 675, loc[1] * (915 / 10.75) + 150) for loc in locDF.values]
-    #     draw.line(([(loc[1], loc[0]) for loc in locList]), fill=colors[i], width=10)
-    #     for loc in locList:
-    #         bbox = [(loc[1] - 10, loc[0] - 10), (loc[1] + 10, loc[0] + 10)]
-    #         draw.rectangle(bbox, fill=colors[i + 2])
+    colors = ((0, 255, 0), (255, 0, 0), (255, 127, 0), (0, 127, 255))
+    for i, locFile in enumerate(locationDataFiles):
+        locDF = pd.read_csv(locFile)
+        locList = [(loc[0] * (730 / 7.08) + 675, loc[1] * (915 / 10.75) + 150) for loc in locDF.values]
+        draw.line(([(loc[1], loc[0]) for loc in locList]), fill=colors[i], width=10)
+        for loc in locList:
+            bbox = [(loc[1] - 10, loc[0] - 10), (loc[1] + 10, loc[0] + 10)]
+            draw.rectangle(bbox, fill=colors[i + 2])
 
     # Show PNG image
     plt.figure("environment")
