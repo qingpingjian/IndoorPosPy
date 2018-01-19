@@ -119,6 +119,8 @@ if __name__ == "__main__":
     errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
     errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
 
+    print("Average Error Distance is %.3f" % np.mean(errorList))
+
     # Show the errors
     pdrxMajorLocator = MultipleLocator(10)
     pdrxMajorFormatter = FormatStrFormatter("%d")
