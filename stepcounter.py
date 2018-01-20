@@ -136,6 +136,7 @@ class SimpleStepCounter(object):
 if __name__ == "__main__" :
     # Accelerometer data for step counting
     acceDataFilePath = "./Examples/StepCounter/20170707201405_acce.csv"
+    acceDataFilePath = "./Examples/ExtendedKF/20180118102918_acce.csv"
 
     acceTimeList, acceValueList = loadAcceData(acceDataFilePath)
 
@@ -149,9 +150,6 @@ if __name__ == "__main__" :
     # Algorithm of step counter
     sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
     allIndexList = sc.countStep(acceTimeList, acceValueArray)
-
-    # Transform from milliseconds to seconds
-    acceTimeList = [t / 1000.0 for t in acceTimeList]
 
     peakIndexList = allIndexList[1::3]
     peakTimeList = [acceTimeList[i] for i in peakIndexList]

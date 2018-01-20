@@ -155,7 +155,7 @@ if __name__ == "__main__":
     firstEKF = ExtendedKF(initState, processCov, observeTrans, observeCov)
 
     fusionPdr = WifiFingerprintPDR()
-    fusionPdr.setFusionModel(firstEKF)
+    #fusionPdr.setFusionModel(firstEKF)
     fusionPdr.setWifiPosPara(wifiTrainList, BayesLocation(apNum=15), moveVector, w2rRotStr)
     locEstRelList = fusionPdr.getLocFusion(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
                                            wifiTimeList, wifiScanList)
@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     # Save the errors
     errorList = [round(err * 1000) / 1000 for err in errorList]
-    errorFilePath = "%s_error.txt" % locationFilePath[0:-4]
+    errorFilePath = "%s_error.csv" % locationFilePath[0:-4]
     errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
     errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
 

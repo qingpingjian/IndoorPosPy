@@ -88,7 +88,7 @@ class ExtendedKF(object):
         Simple getter for state estimation,
         prior state value after predict and posterior state value after update
         """
-        return (self.estimate[1][0], self.estimate[2][0])
+        return (float(self.estimate[1][0]), float(self.estimate[2][0]))
 
 
 if __name__ == "__main__":

@@ -84,9 +84,9 @@ class PDR(object):
 
 
 if __name__ == "__main__":
-    sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.txt", "./Examples/SimplePDR/20170702210514_gyro.txt")
-    locationFilePath = "./Examples/SimplePDR/20170702210514_route.txt"
-    estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.txt"
+    sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.csv", "./Examples/SimplePDR/20170702210514_gyro.csv")
+    locationFilePath = "./Examples/SimplePDR/20170702210514_route.csv"
+    estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.csv"
     routeRotClockWise = "0"
     moveVector = (0, 0)
 
@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     # Save the errors
     errorList = [round(err * 1000) / 1000 for err in errorList]
-    errorFilePath = "%s_error.txt" % locationFilePath[0:-4]
+    errorFilePath = "%s_error.csv" % locationFilePath[0:-4]
     errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
     errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
 

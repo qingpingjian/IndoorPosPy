@@ -39,7 +39,7 @@ def showImage(filePath, locationDataFiles):
 
 if __name__ == "__main__":
     imageFilePath = "./Examples/SimplePDR/20170702210514_environment.png"
-    realLocFilePath = "./Examples/SimplePDR/20170702210514_route.txt"
-    estiLocFilePath = "./Examples/SimplePDR/20170702210514_estimate.txt"
+    realLocFilePath = "./Examples/SimplePDR/20170702210514_route.csv"
+    estiLocFilePath = "./Examples/SimplePDR/20170702210514_estimate.csv"
     showImage(imageFilePath, [realLocFilePath, estiLocFilePath])
     print("Done.")

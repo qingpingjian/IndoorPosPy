@@ -22,7 +22,7 @@ def loadAcceData(filePath, relativeTime = True):
     acceTimeList = []
     acceValueList = []
     for acceRecord in acceInfo.values:
-        acceTimeList.append(acceRecord[0])
+        acceTimeList.append((acceRecord[0] - 1510000000000)/ 1000.0) # milliseconds to seconds
         xAxis = acceRecord[1]
         yAxis = acceRecord[2]
         zAxis = acceRecord[3]
@@ -34,11 +34,11 @@ def loadAcceData(filePath, relativeTime = True):
 
 def loadGyroData(filePath, relativeTime = True):
     gyroDF = pd.read_csv(filePath)
-    gyroInfo = gyroDF.ix[:, ["Time(s)", "gyro_z"]]
+    gyroInfo = gyroDF.ix[:, ["timestamp", "gyro_z"]]
     gyroTimeList = []
     gyroValueList = []
     for gyroRecord in gyroInfo.values:
-        gyroTimeList.append(gyroRecord[0])
+        gyroTimeList.append((gyroRecord[0] - 1510000000000) / 1000.0) # milliseconds to seconds
         gyroValueList.append(gyroRecord[1])
     if relativeTime:
         gyroTimeList = [(t - gyroTimeList[0]) for t in gyroTimeList]
@@ -51,7 +51,7 @@ def loadMovingWifi(wifiFilePath):
     wifiTimeList = []
     wifiScanList = []
     for wifiRecord in wifiScanInfo.values:
-        wifiTimeList.append(wifiRecord[0])
+        wifiTimeList.append((wifiRecord[0] - 1510000000000) / 1000.0) # milliseconds to seconds
         wifiScanList.append(wifiRecord[1])
     return wifiTimeList, wifiScanList
 
