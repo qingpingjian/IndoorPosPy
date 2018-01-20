@@ -38,7 +38,7 @@ class WifiFingerprintPDR(PDR):
 
     def wifiPosition(self, wifiDict):
         wifiWorldLoc = self.fpAlg.bayesAlg2(wifiDict, self.radioMap)
-        return locTransformW2R(wifiWorldLoc, self.moveVector, self.w2rRot)
+        return wifiWorldLoc, locTransformW2R(wifiWorldLoc, self.moveVector, self.w2rRot)
 
     def getLocFusion(self, acceTimeList, acceValueList, gyroTimeList, gyroValueList,
                      wifiTimeList, wifiScanList):
@@ -73,6 +73,7 @@ class WifiFingerprintPDR(PDR):
 
         # Estimate locations and forward heading
         estiLocList = [(0, 0, 0.0, 0.0)] # [(pdrx, pdry, fusionx, fusiony)]
+        wifiEstList = None
         currentGyroIndex = 0
         currentWifiIndex = 0
         for i in range(len(stIndexList)):
@@ -105,12 +106,16 @@ class WifiFingerprintPDR(PDR):
                 endWifiTime = peakTimeList[i + 1] if i < len(stIndexList) - 1 else wifiTimeList[-1]
                 currentWifiIndex, currentWifiDict = wifiExtract(startWifiTime, endWifiTime, wifiTimeList, wifiScanList, currentWifiIndex)
                 if currentWifiDict != None:
-                    wifiReltiveLoc = self.wifiPosition(currentWifiDict)
+                    wifiWorldLoc, wifiReltiveLoc = self.wifiPosition(currentWifiDict)
+                    if wifiEstList == None:
+                        wifiEstList = [(i, wifiWorldLoc[0], wifiWorldLoc[1])]
+                    else:
+                        wifiEstList.append((i, wifiWorldLoc[0], wifiWorldLoc[1]))
             # Fusion
             self.fusionModel.update(np.matrix([ [wifiReltiveLoc[0]], [wifiReltiveLoc[1]] ]))
             fusionLocx, fusionLocy = self.fusionModel.getEstLocation()
             estiLocList.append((xLoc, yLoc, fusionLocx, fusionLocy))
-        return estiLocList
+        return estiLocList, wifiEstList
 
 
 if __name__ == "__main__":
@@ -122,6 +127,7 @@ if __name__ == "__main__":
     locationFilePath = "./Examples/ExtendedKF/20180118102918_route.csv"
     #pdrEstimateFilePath = "./Examples/ExtendedKF/20180118102918_estimate_pdr.csv"
     ekfEstimateFilePath = "./Examples/ExtendedKF/20180118102918_estimate_ekf.csv"
+    wifiEstimateFilePath = "./Examples/ExtendedKF/20180118102918_estimate_wifi.csv"
     # From local coordinate to global coordiante, they are related to route starting point and direction
     r2wRotStr = "270"
     w2rRotStr = "90"
@@ -149,16 +155,16 @@ if __name__ == "__main__":
     # Get the simple PDR estimations and related wifi estimations, then get the fusion based EFK
     # (1) Define a extended kalman filter model
     initState = np.matrix([[0.0], [0.0], [0.0]])
-    processCov = np.diag([0.098, 0.36, 0.36])
+    processCov = np.diag([0.098, 0.81, 0.81])
     observeTrans = np.matrix([[0, 1, 0], [0, 0, 1]])
-    observeCov = np.diag([25.0, 25.0])
+    observeCov = np.diag([100.0, 100.0])
     firstEKF = ExtendedKF(initState, processCov, observeTrans, observeCov)
 
     fusionPdr = WifiFingerprintPDR()
     fusionPdr.setFusionModel(firstEKF)
     fusionPdr.setWifiPosPara(wifiTrainList, BayesLocation(apNum=15), moveVector, w2rRotStr)
-    locEstRelList = fusionPdr.getLocFusion(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
-                                           wifiTimeList, wifiScanList)
+    locEstRelList, wifiEstWorldList = fusionPdr.getLocFusion(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
+                                          wifiTimeList, wifiScanList)
     locEstWorldLoc = []
     for relLoc in locEstRelList:
         pdrWorldLoc = locTransformR2W((relLoc[0], relLoc[1]), moveVector, r2wRotStr)
@@ -171,6 +177,10 @@ if __name__ == "__main__":
     locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)", "OX(m)", "OY(m)"])
     locEstDF.to_csv(ekfEstimateFilePath, encoding='utf-8', index=False)
 
+    wifiEstList = [(int(loc[0]), round(loc[1] * 1000) / 1000, round(loc[2] * 1000) / 1000) for loc in wifiEstWorldList]
+    wifiEstDF = pd.DataFrame(np.array(wifiEstList), columns=["SI", "EX(m)", "EY(m)"])
+    wifiEstDF.to_csv(wifiEstimateFilePath, encoding='utf-8', index=False)
+
     # load real locations
     locRealDF = pd.read_csv(locationFilePath)
 
@@ -180,6 +190,13 @@ if __name__ == "__main__":
     locFusionList = [(loc[2], loc[3]) for loc in locEstList]
     pdrErrList = distError(locRealList, locPDRList)
     fusionErrList = distError(locRealList, locFusionList)
+    # Wifi errors
+    wifiErrList = []
+    for wifiEst in wifiEstList:
+        si = wifiEst[0] if wifiEst[0] < len(locRealList) else len(locRealList) - 1
+        realLoc = locRealList[si]
+        errorDist = math.sqrt((realLoc[0] - wifiEst[1])**2 + (realLoc[1] - wifiEst[2])**2)
+        wifiErrList.append((si, errorDist))
 
     # Save the errors
     fusionErrList = [round(err * 1000) / 1000 for err in fusionErrList]
@@ -210,6 +227,8 @@ if __name__ == "__main__":
     pdrAxe.set_ylabel("$Position\ Error(m)$")
     pdrAxe.plot(range(len(fusionErrList)), fusionErrList, color="r", lw=2, label="PDR Combined Wi-Fi")
     pdrAxe.plot(range(len(pdrErrList)), pdrErrList, color="b", lw=2, label="Basic PDR")
+    pdrAxe.plot([wifiError[0] for wifiError in wifiErrList], [wifiError[1] for wifiError in wifiErrList],
+                color="y", marker="x", lw=2, label="Wi-Fi")
     plt.legend(loc="best")
     plt.grid()
     plt.show()
