@@ -14,6 +14,7 @@ import pandas as pd
 
 from wififunc import wifiStrAnalysis
 
+TIMESTAMP_BASELINE = 1490000000000
 
 def loadAcceData(filePath, relativeTime = True):
     gravity = 9.411869  # Expect value of holding mobile phone static
@@ -22,7 +23,7 @@ def loadAcceData(filePath, relativeTime = True):
     acceTimeList = []
     acceValueList = []
     for acceRecord in acceInfo.values:
-        acceTimeList.append((acceRecord[0] - 1510000000000)/ 1000.0) # milliseconds to seconds
+        acceTimeList.append((acceRecord[0] - TIMESTAMP_BASELINE)/ 1000.0) # milliseconds to seconds
         xAxis = acceRecord[1]
         yAxis = acceRecord[2]
         zAxis = acceRecord[3]
@@ -38,7 +39,7 @@ def loadGyroData(filePath, relativeTime = True):
     gyroTimeList = []
     gyroValueList = []
     for gyroRecord in gyroInfo.values:
-        gyroTimeList.append((gyroRecord[0] - 1510000000000) / 1000.0) # milliseconds to seconds
+        gyroTimeList.append((gyroRecord[0] - TIMESTAMP_BASELINE) / 1000.0) # milliseconds to seconds
         gyroValueList.append(gyroRecord[1])
     if relativeTime:
         gyroTimeList = [(t - gyroTimeList[0]) for t in gyroTimeList]
@@ -51,7 +52,7 @@ def loadMovingWifi(wifiFilePath):
     wifiTimeList = []
     wifiScanList = []
     for wifiRecord in wifiScanInfo.values:
-        wifiTimeList.append((wifiRecord[0] - 1510000000000) / 1000.0) # milliseconds to seconds
+        wifiTimeList.append((wifiRecord[0] - TIMESTAMP_BASELINE) / 1000.0) # milliseconds to seconds
         wifiScanList.append(wifiRecord[1])
     return wifiTimeList, wifiScanList
 
