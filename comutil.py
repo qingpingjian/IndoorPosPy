@@ -149,17 +149,16 @@ def locTransformR2W(relLoc, moveVector, rotStr):
     :param rotStr: clockwise rotation angle in degree
     :return: location at world coordinate
     """
-    rotedLoc = relLoc
+    x = relLoc[0]
+    y = relLoc[1]
+    rotedLoc = (x, y)
     # clockwise rotation first
     if rotStr == "90":
-        x = - relLoc[1]
-        y = relLoc[0]
+        rotedLoc = (-y, x)
     elif rotStr == "180":
-        x = - relLoc[0]
-        y = - relLoc[1]
+        rotedLoc = (-x, -y)
     elif rotStr == "270":
-        x = relLoc[1]
-        y = - relLoc[0]
+        rotedLoc = (y, -x)
     return (moveVector[0] + rotedLoc[0], moveVector[1] + rotedLoc[1])
 
 

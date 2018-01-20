@@ -151,16 +151,15 @@ if __name__ == "__main__":
     initState = np.matrix([[0.0], [0.0], [0.0]])
     processCov = np.diag([0.098, 0.36, 0.36])
     observeTrans = np.matrix([[0, 1, 0], [0, 0, 1]])
-    observeCov = np.diag([2.25, 2.25])
+    observeCov = np.diag([25.0, 25.0])
     firstEKF = ExtendedKF(initState, processCov, observeTrans, observeCov)
 
     fusionPdr = WifiFingerprintPDR()
-    #fusionPdr.setFusionModel(firstEKF)
+    fusionPdr.setFusionModel(firstEKF)
     fusionPdr.setWifiPosPara(wifiTrainList, BayesLocation(apNum=15), moveVector, w2rRotStr)
     locEstRelList = fusionPdr.getLocFusion(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
                                            wifiTimeList, wifiScanList)
     locEstWorldLoc = []
-
     for relLoc in locEstRelList:
         pdrWorldLoc = locTransformR2W((relLoc[0], relLoc[1]), moveVector, r2wRotStr)
         fusionWorldLoc = locTransformR2W((relLoc[2], relLoc[3]), moveVector, r2wRotStr)
@@ -177,16 +176,18 @@ if __name__ == "__main__":
 
     # Calculate the location errors
     locRealList = [(loc[0], loc[1]) for loc in locRealDF.values]
-    locOptList = [(loc[2], loc[3]) for loc in locEstList]
-    errorList = distError(locRealList, locOptList)
+    locPDRList = [(loc[0], loc[1]) for loc in locEstList]
+    locFusionList = [(loc[2], loc[3]) for loc in locEstList]
+    pdrErrList = distError(locRealList, locPDRList)
+    fusionErrList = distError(locRealList, locFusionList)
 
     # Save the errors
-    errorList = [round(err * 1000) / 1000 for err in errorList]
+    fusionErrList = [round(err * 1000) / 1000 for err in fusionErrList]
     errorFilePath = "%s_error.csv" % locationFilePath[0:-4]
-    errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
+    errorDF = pd.DataFrame(np.array(fusionErrList), columns=["Error(m)"])
     errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
 
-    print("Average Error Distance is %.3f" % np.mean(errorList))
+    print("Average Error Distance is %.3f" % np.mean(fusionErrList))
 
     # Show the errors
     pdrxMajorLocator = MultipleLocator(10)
@@ -207,8 +208,9 @@ if __name__ == "__main__":
     pdrAxe.yaxis.set_minor_locator(pdryMinorLocator)
     pdrAxe.set_xlabel("$Step\ Number$")
     pdrAxe.set_ylabel("$Position\ Error(m)$")
-    pdrAxe.plot(range(len(errorList)), errorList, color="r", lw=2, label="WiFi+PDR")
-    plt.legend(loc=2)
+    pdrAxe.plot(range(len(fusionErrList)), fusionErrList, color="r", lw=2, label="PDR Combined Wi-Fi")
+    pdrAxe.plot(range(len(pdrErrList)), pdrErrList, color="b", lw=2, label="Basic PDR")
+    plt.legend(loc="best")
     plt.grid()
     plt.show()
 
