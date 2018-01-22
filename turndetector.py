@@ -8,10 +8,13 @@ Created on 2018/1/22 15:56
 @software: PyCharm Community Edition
 """
 
+import matplotlib
 import matplotlib.pyplot as plt
 
 from comutil import *
 from dataloader import loadGyroData
+
+matplotlib.rcParams['axes.unicode_minus'] = False # Show minus normally
 
 class SimpleTurnDetector(object):
 
@@ -23,6 +26,7 @@ class SimpleTurnDetector(object):
         pass
 
     def turnPoint(self, timeList, valueList):
+        # First, find peak points to find turning left and turning around left
         currentIndex = 0
         peakIndexList = []
         peakValueList = []
@@ -36,10 +40,50 @@ class SimpleTurnDetector(object):
             peakIndex, peakValue = getNextExtreme(valueList, currentIndex)
             if peakValue == None:
                 break
+            currentIndex = peakIndex + 1
             if peakValue < self.upperTd:
                 continue
-
-        pass
+            peakTime = timeList[peakIndex]
+            if len(peakValueList) == 0 or peakTime - peakTimeList[-1] >= self.durationTd:
+                peakValueList.append(peakValue)
+                peakTimeList.append(peakTime)
+                peakIndexList.append(peakIndex)
+            else:
+                if peakValue >= peakValueList[-1]:
+                    peakValueList[-1] = peakValue
+                    peakTimeList[-1] = peakTime
+                    peakIndexList[-1] = peakIndex
+        # Second, find valley points to find turning right and turning around right
+        currentIndex = 0
+        valleyIndexList = []
+        valleyValueList = []
+        valleyTimeList = []
+        # The last 2 samples do not affect the step counting result
+        while currentIndex < len(valueList) - 2:
+            currentValue = valueList[currentIndex]
+            if currentValue > self.lowerTd:
+                currentIndex += 1
+                continue
+            valleyIndex, valleyValue = getNextExtreme(valueList, currentIndex, peakFlag=False)
+            if valleyValue == None:
+                break
+            currentIndex = valleyIndex + 1
+            if valleyValue > self.lowerTd:
+                continue
+            valleyTime = timeList[valleyIndex]
+            if len(valleyValueList) == 0 or valleyTime - valleyTimeList[-1] >= self.durationTd:
+                valleyValueList.append(valleyValue)
+                valleyTimeList.append(valleyTime)
+                valleyIndexList.append(valleyIndex)
+            else:
+                if valleyValue <= valleyValueList[-1]:
+                    valleyValueList[-1] = valleyValue
+                    valleyTimeList[-1] = valleyTime
+                    valleyIndexList[-1] = valleyIndex
+        turnIndexList = []
+        turnIndexList.extend(peakIndexList)
+        turnIndexList.extend(valleyIndexList)
+        return sorted(turnIndexList)
 
     def detectTurn(self, timeList, valueList):
 
@@ -54,6 +98,15 @@ if __name__ == "__main__":
     windowSize = 23
     gyroTimeList, gyroValueList = slidingWindowFilter(gyroTimeList, gyroValueList, windowSize)
 
+    para = modelParameterDict.get("pete")
+
+    simpleTd = SimpleTurnDetector(para[6], para[7], para[8], para[9])
+    turnIndexList = simpleTd.turnPoint(gyroTimeList, gyroValueList)
+
+    # Turn point time and value
+    turnTimeList = [gyroTimeList[i] for i in turnIndexList]
+    turnValueList = [gyroValueList[i] for i in turnIndexList]
+
     # Plot the figures
     fig = plt.figure()
     gyroRateAxes = fig.add_subplot(111)
@@ -64,6 +117,9 @@ if __name__ == "__main__":
     # gyroRateAxes.set_xticklabels(np.array(np.linspace(0, 30, 7), np.int))
     # gyroRateAxes.set_yticklabels(np.linspace(-1.5, 1.5, 7))
     ratePlot, = gyroRateAxes.plot(gyroTimeList, gyroValueList, color="g", label="Rotation Rate")
+    for i in range(len(turnTimeList)):
+        gyroRateAxes.axvline(turnTimeList[i], ls="--", lw=2, color="r")
+    print("We find %d turns" % (len(turnIndexList)))
     # gyroRateAxes.yaxis.label.set_color(ratePlot.get_color())
 
     rotaAngleAxes.set_ylabel("$Rotation(degree)$")
