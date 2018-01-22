@@ -15,10 +15,30 @@ from dataloader import loadGyroData
 
 class SimpleTurnDetector(object):
 
-    def __init__(self):
+    def __init__(self, upperThreshold, lowerThreshold, durationThreshold, intervalThreshold):
+        self.upperTd = upperThreshold   # radian/s
+        self.lowerTd = lowerThreshold   # radian/s
+        self.durationTd = durationThreshold # seconds
+        self.intervalTd = intervalThreshold # seconds
         pass
 
     def turnPoint(self, timeList, valueList):
+        currentIndex = 0
+        peakIndexList = []
+        peakValueList = []
+        peakTimeList = []
+        # The last 2 samples do not affect the step counting result
+        while currentIndex < len(valueList) - 2:
+            currentValue = valueList[currentIndex]
+            if currentValue < self.upperTd:
+                currentIndex += 1
+                continue
+            peakIndex, peakValue = getNextExtreme(valueList, currentIndex)
+            if peakValue == None:
+                break
+            if peakValue < self.upperTd:
+                continue
+
         pass
 
     def detectTurn(self, timeList, valueList):
