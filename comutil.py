@@ -52,6 +52,13 @@ def slidingWindowFilter(timeList, valueList, windowSize):
     return timeFList, valueFList
 
 
+def varOfAcce(timeList, valueList, windowSize):
+    midPos = (windowSize - 1) / 2
+    votList = [timeList[i] for i in range(midPos, len(valueList) - midPos)]
+    varList = [np.var(valueList[i - midPos:i + midPos + 1]) for i in range(midPos, len(valueList) - midPos)]
+    return votList, varList
+
+
 def angleNormalize(angle):
     """
     Keep angle in {0, 2pi)
