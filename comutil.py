@@ -15,8 +15,8 @@ import sys
 from wififunc import wifiStrAnalysis
 
 modelParameterDict = {
-    "pete": (0.85, -0.1, 0.380, 0.125, 0.28927316, 0.21706846),
-    "super": (0.85, -0.1, 0.380, 0.125, 0.21853894, 0.46235461)
+    "pete": (0.85, -0.20, 0.380, 0.175, 0.28927316, 0.21706846),
+    "super": (0.85, -0.20, 0.380, 0.175, 0.21853894, 0.46235461)
 }
 
 def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
@@ -50,6 +50,39 @@ def slidingWindowFilter(timeList, valueList, windowSize):
                        for i in range(currentIndex + midPos, dataLength - midPos)])
     valueFList.extend(valueList[dataLength - midPos:dataLength])
     return timeFList, valueFList
+
+
+def getNextExtreme(valueList, startIndex=0, peakFlag=True, step=1):
+    """
+    Get the next peak point or valley point from the given start index at the given step
+    :param valueList: one dimensional data list
+    :param startIndex: the given start index
+    :param peakFlag:  if this is True, we search peak point, otherwise, we search valley point
+    :param step: {1, -1}, default 1, search forward, -1 search backward
+    :return: the index and value of next extreme point
+    """
+    if startIndex + step * 2 >= len(valueList) or startIndex + step * 2 <= -1:
+        return startIndex, None
+
+    searchList = np.array(valueList[startIndex::step]) * (1 if peakFlag else -1)
+
+    searchIndex = 0
+    value = searchList[searchIndex]
+    nextValue = searchList[searchIndex+1]
+    while nextValue <= value:
+        value = nextValue
+        searchIndex = searchIndex + 1
+        if searchIndex + 2 >= len(searchList):
+            return startIndex + searchIndex * step, None
+        nextValue = searchList[searchIndex + 1]
+    while nextValue >= value:
+        value = nextValue
+        searchIndex = searchIndex + 1
+        if searchIndex + 2 >= len(searchList):
+            break
+        nextValue = searchList[searchIndex + 1]
+    extremeIndex = startIndex + searchIndex * step
+    return extremeIndex, valueList[extremeIndex]
 
 
 def varOfAcce(timeList, valueList, windowSize):

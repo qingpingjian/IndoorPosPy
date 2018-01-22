@@ -11,7 +11,7 @@ Created on 2017/12/27 22:03
 import math
 import matplotlib.pyplot as plt
 
-from comutil import butterFilter, modelParameterDict
+from comutil import modelParameterDict, butterFilter, getNextExtreme
 from dataloader import loadAcceData
 
 
@@ -23,29 +23,29 @@ class SimpleStepCounter(object):
         self.durationThreshold = durationThreshold
         self.intervalThreshold = intervalThreshold
 
-    def getNextPeak(self, valueList, startIndex):
-        """
-        Get the next peak point from the given start index, startIndex <= len(valueList) - 2
-        :param valueList: accelerometer data list
-        :param startIndex: the given start index
-        :return: the index and value of next peak point
-        """
-        index = startIndex
-        value = valueList[index]
-        nextValue = valueList[index + 1]
-        while nextValue <= value :
-            value = nextValue
-            index = index + 1
-            if index + 2 >= len(valueList):
-                return index, value # Can not find a valid peak
-            nextValue = valueList[index + 1]
-        while nextValue >= value :
-            value = nextValue
-            index = index + 1
-            if index + 2 >= len(valueList):
-                break
-            nextValue = valueList[index + 1]
-        return index, value
+    # def getNextPeak(self, valueList, startIndex):
+    #     """
+    #     Get the next peak point from the given start index, startIndex <= len(valueList) - 2
+    #     :param valueList: accelerometer data list
+    #     :param startIndex: the given start index
+    #     :return: the index and value of next peak point
+    #     """
+    #     index = startIndex
+    #     value = valueList[index]
+    #     nextValue = valueList[index + 1]
+    #     while nextValue <= value :
+    #         value = nextValue
+    #         index = index + 1
+    #         if index + 2 >= len(valueList):
+    #             return index, None # Can not find a valid peak
+    #         nextValue = valueList[index + 1]
+    #     while nextValue >= value :
+    #         value = nextValue
+    #         index = index + 1
+    #         if index + 2 >= len(valueList):
+    #             break
+    #         nextValue = valueList[index + 1]
+    #     return index, value
 
     def searchTrough(self, valueList, startIndex, direction = True):
         """
@@ -86,7 +86,11 @@ class SimpleStepCounter(object):
             if value <= self.maxThreshold:
                 index += 1
                 continue
-            peakIndex, peakValue = self.getNextPeak(valueList, index)
+            #peakIndex, peakValue = self.getNextPeak(valueList, index)
+            peakIndex, peakValue = getNextExtreme(valueList, index)
+            # We reach the end of data
+            if peakValue == None:
+                break
             # Next index for our algorithm
             index = peakIndex + 1
             # Peak in the trough

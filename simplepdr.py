@@ -84,7 +84,8 @@ class PDR(object):
 
 
 if __name__ == "__main__":
-    sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.csv", "./Examples/SimplePDR/20170702210514_gyro.csv")
+    sensorFilePath = ("./Examples/SimplePDR/20170702210514_acce.csv",
+                      "./Examples/SimplePDR/20170702210514_gyro.csv")
     locationFilePath = "./Examples/SimplePDR/20170702210514_route.csv"
     estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.csv"
     routeRotClockWise = "0"
