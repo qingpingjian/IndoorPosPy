@@ -14,9 +14,21 @@ import sys
 
 from wififunc import wifiStrAnalysis
 
+"""
+: accelerometer peak threshold, valley threshold,
+minimum two step peak duration, minimum duration between end and next start point
+: step length slope and offset
+: gyroscope peak threshold, valley threshold, minimum duration between two peak points,
+minimum slope belongs to mainly turning progress, minimum degree change belongs to mainly turning progress,
+maximum pause in turning progress, minimum degree for a left or right turn
+"""
 modelParameterDict = {
-    "pete": (0.85, -0.20, 0.380, 0.175, 0.28927316, 0.21706846, 0.905, -0.905, 2.45, 1.725),
-    "super": (0.85, -0.20, 0.380, 0.175, 0.21853894, 0.46235461, 0.905, -0.905, 2.45, 1.725)
+    "pete": (0.85, -0.20, 0.380, 0.175,
+             0.28927316, 0.21706846,
+             0.905, -0.905, 2.45, 15.0, 12.0, 1.725, 75.0),
+    "super": (0.85, -0.20, 0.380, 0.175,
+              0.21853894, 0.46235461,
+              0.905, -0.905, 2.45, 15.0, 12.0, 1.725, 75.0)
 }
 
 def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
