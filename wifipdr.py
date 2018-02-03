@@ -36,6 +36,10 @@ class WifiFingerprintPDR(PDR):
         self.moveVector = moveVector
         self.w2rRot = w2rRotStr
 
+    def setPDRStart(self, startAtWorld, r2w):
+        self.startAtWorld = startAtWorld
+        self.r2wInDegree = r2w
+
     def wifiPosition(self, wifiDict):
         wifiWorldLoc = self.fpAlg.bayesAlg2(wifiDict, self.radioMap)
         return wifiWorldLoc, locTransformW2R(wifiWorldLoc, self.moveVector, self.w2rRot)
@@ -117,6 +121,19 @@ class WifiFingerprintPDR(PDR):
             estiLocList.append((xLoc, yLoc, fusionLocx, fusionLocy))
         return estiLocList, wifiEstList
 
+    def bindWifiFP(self, acceTimeList, acceValueList, gyroTimeList, gyroValueList,
+                     wifiTimeList, wifiScanList):
+        """
+
+        :param acceTimeList: acceleration timestamp list
+        :param acceValueList: data list of accelerometer
+        :param gyroTimeList: gyroscope timestamp list
+        :param gyroValueList: data list of gyroscope
+        :param wifiTimeList: timestamp list of wifi scan value
+        :param wifiScanList: wifi scan value list
+        :return:[(xloc, yloc, wifi)]
+        """
+        pass
 
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/ExtendedKF/20180118102918_acce.csv",
