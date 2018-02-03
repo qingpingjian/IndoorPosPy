@@ -9,6 +9,16 @@ Created on 2018/2/3 21:53
 """
 import numpy as np
 
+baseDirect = 1.25   # direction in radian
+# floorplan abstraction including straight parts of corridor and rooms
+# for corridor (id, length, direction)
+# for room (id, width(door), length, door-right-corner, door-left-corner)
+abstractMap = [(1, 7.9, 0.0),
+               (2, 40.6, 1.57),
+               (3, 17.9, 0.0),
+               (4, 8.9, 5.49, 5.35, 4.71),
+               (5, 8.9, 5.49, 1.57, 0.78)]
+
 class SimpleHMM(object):
     def __init__(self, Ann, Bnm, pi) :
         self.A = np.array(Ann)      # transition matrix
