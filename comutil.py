@@ -113,7 +113,7 @@ def angleNormalize(angle):
     return (angle % (2.0 * math.pi) + 2.0 * math.pi) % (2.0 * math.pi)
 
 
-def meanAngle(angleList):
+def meanAngle(angleList, normalize = True):
     """
     Calculate the average of a set of circular data in radian
     :param angleList: a set of circular data
@@ -124,7 +124,8 @@ def meanAngle(angleList):
     for angle in angleList:
         sinSum += math.sin(angle)
         cosSum += math.cos(angle)
-    return angleNormalize(math.atan2(sinSum, cosSum))
+    meanValue = math.atan2(sinSum, cosSum)
+    return angleNormalize(meanValue) if normalize else meanValue
 
 
 def rotationAngle(gyroTimeList, gyroValueList, normalize = True):

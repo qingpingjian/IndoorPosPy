@@ -46,6 +46,19 @@ def loadGyroData(filePath, relativeTime = True):
     return gyroTimeList, gyroValueList
 
 
+def loadCompData(filePath, relativeTime=True):
+    compDF = pd.read_csv(filePath)
+    compInfo = compDF.ix[:, ["timestamp", "azimut"]]
+    compTimeList = []
+    compValueList = []
+    for compRecord in compInfo.values:
+        compTimeList.append((compRecord[0] - TIMESTAMP_BASELINE) / 1000.0) # milliseconds to seconds
+        compValueList.append(-1.0 * compRecord[1])    # There is a minus between compass data and gyroscope data
+    if relativeTime:
+        compTimeList = [(t - compTimeList[0]) for t in compTimeList]
+    return compTimeList, compValueList
+
+
 def loadMovingWifi(wifiFilePath):
     wifiScanDF = pd.read_csv(wifiFilePath)
     wifiScanInfo = wifiScanDF.ix[:, ["timestamp", "wifiinfos"]]
