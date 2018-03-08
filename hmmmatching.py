@@ -103,14 +103,35 @@ class SegmentHMMMatcher(object):
         turnValueList = [gyroValueList[i] for i in turnIndexList]
         rtTimeList = [gyroTimeList[i] for i in rtDegreeIndexList]
         rtValueList = [rotaDegreeList[i] for i in rtDegreeIndexList]
+        edRtTimeList = rtTimeList[1::2]
+        turnTypeList = []
+        for i in range(0, len(rtTimeList), 2):
+            turnTypeList.append(simpleTd.turnTranslate(rtValueList[i + 1] - rtValueList[i], humanFlag=False))
 
-        # Step and Turn Alignment by time
-        # TODO:
-        # turnAtStepIndexList = []
-        # for turnTime in turnTimeList:
-        #
-        # for i, edt in enumerate(edTimeList):
-        #     if
+        # Turn recognize and Step and Turn Alignment by time
+        turnAtStepIndexList = []
+        edStartIndex = 0
+        for turnTime in turnTimeList:
+            for edIndex in range(edStartIndex, len(edTimeList)):
+                edt = edTimeList[edIndex]
+                if edt > turnTime:
+                    turnAtStepIndexList.append(edIndex)
+                    edStartIndex = edIndex + 1
+                    break
+        #print(turnAtStepIndexList)
+        endTurnAtStepIndexList = []
+        edStartIndex = 0
+        for edRt in edRtTimeList:
+            for edIndex in range(edStartIndex, len(edTimeList)):
+                edt = edTimeList[edIndex]
+                if edt > edRt:
+                    endTurnAtStepIndexList.append(edIndex)
+                    edStartIndex = edIndex + 1
+                    break
+        #print(endTurnAtStepIndexList)
+        for i in range(len(turnAtStepIndexList)):
+            if turnAtStepIndexList[i] == endTurnAtStepIndexList[i]:
+                endTurnAtStepIndexList[i] = turnAtStepIndexList[i] + 1
 
         self.onlineEstList = []
         self.viterbiList = []
@@ -120,9 +141,9 @@ class SegmentHMMMatcher(object):
         # Initial point estimation
         initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
         print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
-        self.onlineEstList.append((initPoint[0], initPoint[1]))
+        #self.onlineEstList.append((initPoint[0], initPoint[1]))
         # TODO: give the initial point firstly
-        #self.onlineEstList.append((49.8, 1.95))
+        self.onlineEstList.append((49.8, 1.95))
         # Calculate the real directions for each step
         dirList = [r + startingDirection for r in rotaValueList]
         # Secondly, update locations for each step
@@ -137,16 +158,24 @@ class SegmentHMMMatcher(object):
             aeTime = edTimeList[i]
             # If this is the end of some activity,
             # then, update segment candidate,
-            if (False):
+            if i == endTurnAtStepIndexList[currentTurnNum]:
+                self.viterbiList.append(candidateList)
+                candidateList = self.digitalMap.nextSegment(turnTypeList[currentTurnNum], candidateList)
+                # TODO: How to record combined prob., need to add this information
                 # TODO:
                 if (self.matchStatus == "covg"): # loccation estimation and direction
                     pass
                 else: # update location estimation by new candidates starting points
                     pass
+                # Ready to the next activity
+                currentTurnNum = currentTurnNum + 1
             else:
                 # update candidates prob.
                 stepNumInSeg = stepNumInSeg + 1
                 candidateList = self.checkSegment(stepLength, stepNumInSeg, stepDeviation, candidateList)
+                if len(candidateList) == 1:
+                    self.matchStatus = "covg"
+
                 if (False): # step after turns
                     pass
                 else:
@@ -204,9 +233,9 @@ if __name__ == "__main__":
     print("Average Error Distance is %.3f" % np.mean(errorList))
 
     # Show the errors
-    pdrxMajorLocator = MultipleLocator(10)
+    pdrxMajorLocator = MultipleLocator(40)
     pdrxMajorFormatter = FormatStrFormatter("%d")
-    pdrxMinorLocator = MultipleLocator(5)
+    pdrxMinorLocator = MultipleLocator(20)
     pdryMajorLocator = MultipleLocator(1.0)
     pdryMajorFormatter = FormatStrFormatter("%.1f")
     pdryMinorLocator = MultipleLocator(0.5)

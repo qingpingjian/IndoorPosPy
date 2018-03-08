@@ -207,6 +207,27 @@ class DigitalMap(object):
             probValue = math.log(probValue)
         return probValue
 
+    def nextSegment(self, turnType, candidateList):
+        # Now we meet a turn, then we should calcualte the most prob. segments based on turn tpyes
+        nextCandidateList = []
+        for candidate in candidateList:
+            lastSegId = candidate[4][-1]
+            originTargetPoint = (candidate[2], candidate[3])
+            for edge in self.edgesArray:
+                if turnType == 3 or turnType == 4:
+                    if edge[0] == lastSegId and edge[2] == turnType:
+                        endPoint = self.getAnotherPoint(edge[1], originTargetPoint)
+                        nextCandidateList.append([originTargetPoint[0], originTargetPoint[1], endPoint[0], endPoint[1],
+                                                  [edge[1]], candidate[6], candidate[6]])
+                        break
+                elif turnType == 1 or turnType == 2:
+                    passedPoint = (edge[3], edge[4])
+                    if edge[0] == lastSegId and edge[2] == turnType and self.isRelated(originTargetPoint, passedPoint):
+                        endPoint = self.getAnotherPoint(edge[1], passedPoint)
+                        nextCandidateList.append([passedPoint[0], passedPoint[1], endPoint[0], endPoint[1],
+                                                  [edge[1]], candidate[6], candidate[6]])
+                        break
+        return nextCandidateList
 
 if __name__ == "__main__":
     print("Done.")
