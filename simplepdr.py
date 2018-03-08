@@ -90,6 +90,15 @@ if __name__ == "__main__":
     estimationFilePath = "./Examples/SimplePDR/20170702210514_estimate.csv"
     routeRotClockWise = "0"
     moveVector = (0, 0)
+    # Third Trajectory of AiFiMatch
+    # third
+    # forth
+    sensorFilePath = ("./RawData/AiFiMatch/ThirdTrajectory/20180303143913_acce.csv",
+                      "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_gyro.csv")
+    locationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_route.csv"
+    estimationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_estimate_pdr.csv"
+    routeRotClockWise = "0"
+    moveVector = (49.8, 1.95)
 
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)

@@ -36,8 +36,8 @@ def showImage(filePath, locationDataFiles, routeColors):
     plt.title("Ground Truth for Each Trajectory")
     plt.axis('off')
     plt.imshow(im)
-    plt.savefig("./environment_setup.png")
-    #plt.show()
+    #plt.savefig("./environment_setup.png")
+    plt.show()
 
 if __name__ == "__main__":
     imageFilePath = "environment_0302.png"
