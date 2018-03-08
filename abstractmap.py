@@ -18,15 +18,15 @@ Q <---> P <-> O <-> N <-> M <-> L <-> K <->J
 building1305 = {
     "nodes":{"seg1":(1.2, 1.7,  3.14159,  1.2, 10.7, 0.0), # (AB)
              "seg2":(1.2, 10.7, 3.14159,  1.2, 23.7, 0.0), # (BC)
-             "seg3":(1.2, 23.7, 3.14159,  1.2, 38.5, 0.0), # (CD)
-             "seg4":(1.2, 38.5, 3.14159,  1.2, 51.5, 0.0), # (DE)
-             "seg5":(1.2, 51.5, 3.14159,  1.2, 65.5, 0.0), # (EF)
-             "seg6":(1.2, 65.5, 3.14159,  1.2, 78.05, 0.0),# (FG)
+             "seg3":(1.2, 23.7, 3.14159,  1.2, 41.3, 0.0), # (CD)
+             "seg4":(1.2, 41.3, 3.14159,  1.2, 51.5, 0.0), # (DE)
+             "seg5":(1.2, 51.5, 3.14159,  1.2, 60.95, 0.0), # (EF)
+             "seg6":(1.2, 60.95,3.14159,  1.2, 78.05, 0.0), # (FG)
              "seg7":(1.2, 78.05,4.71239,  15.5, 78.05, 1.5708), # (GH)
              "seg8":(15.5,78.05,4.71239,  25.5, 78.05, 1.5708), # (HI)
              "seg9":(25.5,78.05,4.71239,  49.8, 78.05, 1.5708), # (IJ)
-             "seg10":(49.8,60.05,3.14159, 49.8, 78.05, 0.0), # (KJ)
-             "seg11":(49.8,41.15,3.14159, 49.8, 60.05, 0.0), # (LK)
+             "seg10":(49.8,59.15,3.14159, 49.8, 78.05, 0.0), # (KJ)
+             "seg11":(49.8,41.15,3.14159, 49.8, 59.15, 0.0), # (LK)
              "seg12":(49.8,33.95,3.14159, 49.8, 41.15, 0.0), # (ML)
              "seg13":(49.8,24.95,3.14159, 49.8, 33.95, 0.0), # (NM)
              "seg14":(49.8,15.95,3.14159, 49.8, 24.95, 0.0), # (ON)
@@ -48,18 +48,18 @@ building1305 = {
               ("seg3", "seg3", 3),
               ("seg3", "seg3", 4),
               ("seg3", "seg2", 0, 1.2, 23.7),
-              ("seg3", "seg4", 0, 1.2, 38.5),
+              ("seg3", "seg4", 0, 1.2, 41.3),
               ("seg4", "seg4", 3),
               ("seg4", "seg4", 4),
-              ("seg4", "seg3", 0, 1.2, 38.5),
+              ("seg4", "seg3", 0, 1.2, 41.3),
               ("seg4", "seg5", 0, 1.2, 51.5),
               ("seg5", "seg5", 3),
               ("seg5", "seg5", 4),
               ("seg5", "seg4", 0, 1.2, 51.5),
-              ("seg5", "seg6", 0, 1.2, 65.5),
+              ("seg5", "seg6", 0, 1.2, 60.95),
               ("seg6", "seg6", 3),
               ("seg6", "seg6", 4),
-              ("seg6", "seg5", 0, 1.2, 65.5),
+              ("seg6", "seg5", 0, 1.2, 60.95),
               ("seg6", "seg7", 2, 1.2, 78.05),
               ("seg7", "seg7", 3),
               ("seg7", "seg7", 4),
@@ -76,10 +76,10 @@ building1305 = {
               ("seg10", "seg10", 3),
               ("seg10", "seg10", 4),
               ("seg10", "seg9", 1, 49.8, 78.05),
-              ("seg10", "seg11", 0, 49.8, 60.05),
+              ("seg10", "seg11", 0, 49.8, 59.15),
               ("seg11", "seg11", 3),
               ("seg11", "seg11", 4),
-              ("seg11", "seg10", 0, 49.8, 60.05),
+              ("seg11", "seg10", 0, 49.8, 59.15),
               ("seg11", "seg12", 0, 49.8, 41.15),
               ("seg12", "seg12", 3),
               ("seg12", "seg12", 4),
@@ -122,6 +122,40 @@ building1305 = {
               ("seg20", "seg2", 2, 1.2, 10.7)
               ),
 }
+
+import math
+from anglefunc import angleNormalize, isHeadingMatch
+
+class DigitalMap(object):
+    def __init__(self, mapGraph=building1305):
+        self.mapGraph = mapGraph
+        self.nodesDict = mapGraph.get("nodes")
+        self.edgesArray = mapGraph.get("edges")
+        self.initProb = 1.0 # math.log(math.e)
+        return
+
+    def getSegmentLength(self, segIDArray):
+        # TODO: Here, we donot check the segments are all in a straight narrow corridor
+        length = 0.0
+        # Try to sum all the length of input segments
+        for segID in segIDArray:
+            segAttr = self.nodesDict.get(segID)
+            length = length + math.sqrt(math.pow(segAttr[0] - segAttr[3], 2) + math.pow(segAttr[1] - segAttr[4], 2))
+        return length
+
+    def extractSegmentByDir(self, walkingDir=0.0):
+        normalWalkDir = angleNormalize(walkingDir)
+        candidateList = []
+        for id, attr in self.nodesDict.iteritems():
+            firstAccessDir = attr[2]  # The accessible direction of the first endpoint
+            secondAccessDir = attr[5]  # The accessible direction of the second endpoint
+            if isHeadingMatch(normalWalkDir, firstAccessDir):
+                # The second point is starting point and the first point is the next point
+                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb])
+            elif isHeadingMatch(normalWalkDir, secondAccessDir):
+                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb])
+        return candidateList
+
 
 if __name__ == "__main__":
     print("Done.")

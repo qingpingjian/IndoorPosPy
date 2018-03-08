@@ -18,8 +18,16 @@ class SegmentHMMMatcher(object):
         self.personID = personID
         return
 
+    def updateDigitalMap(self, indoorMap):
+        self.digitalMap = indoorMap
+
+    def updateRadioMap(self, radioMap):
+        self.radioMap = radioMap
+
     def onlineViterbi(self, acceTimeList, acceValueList,
-                      gyroTimeList, gyroValueList):
+                      gyroTimeList, gyroValueList,
+                      wifiTimeList=None, wifiScanList=None,
+                      startingDirection=0.0):
         para = modelParameterDict.get(self.personID)
         # Count step
         acceValueArray = butterFilter(acceValueList)
@@ -43,7 +51,14 @@ class SegmentHMMMatcher(object):
         gyroTimeList, gyroValueList = slidingWindowFilter(gyroTimeList, gyroValueList, windowSize)
         simpleTd = SimpleTurnDetector(self.personID)
         turnIndexList, rtDegreeIndexList = simpleTd.detectTurn(gyroTimeList, gyroValueList, rotaDegreeList)
-        pass
+
+        #Map Matching based on steps and turns
+        # First, initial candidates from initial direction
+        candidateList = self.digitalMap.extractSegmentByDir(startingDirection)
+        # Initial point estimation
+        initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
+        print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
+
 
 
 if __name__ == "__main__":
@@ -56,6 +71,10 @@ if __name__ == "__main__":
     gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
 
     firstMatcher = SegmentHMMMatcher()
+    myDigitalMap = DigitalMap()
+    firstMatcher.updateDigitalMap(myDigitalMap)
+
     initDirection = 0.0
+    firstMatcher.onlineViterbi(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
 
     print("Done.")
