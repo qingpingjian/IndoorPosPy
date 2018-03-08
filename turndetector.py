@@ -16,6 +16,17 @@ from dataloader import loadAcceData, loadGyroData
 
 matplotlib.rcParams['axes.unicode_minus'] = False # Show minus normally
 
+#  normal walking (go straight), left turn, right turn, left around, right around
+ActivityTypeList = [0, 1, 2, 3, 4]
+ActivityNameList = ["Normal Walking", "Turn Left", "Turn Right", "Left Around", "Right Around"]
+ActivityConfMat = [
+    [1.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 1.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 1.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 1.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 1.0]
+]
+
 class SimpleTurnDetector(object):
 
     def __init__(self, upperThreshold=0.905, lowerThreshold=-0.905, durationThreshold=2.45,
@@ -153,17 +164,17 @@ class SimpleTurnDetector(object):
                 print("Something wrong happened!")
         return turnPointIndexList, stAndedList
 
-    def turnTranslate(self, degree):
-        turnName = "Unknown Turn"
-        if degree >= self.minTurnDegree * 2:
-            turnName = "Right Around"
-        elif degree > self.minTurnDegree:
-            turnName = "Turn Right"
-        elif degree > self.minTurnDegree * -2 and degree < self.minTurnDegree:
-            turnName = "Turn Left"
-        elif degree <= self.minTurnDegree * -2:
-            turnName = "Left Around"
-        return turnName
+    def turnTranslate(self, degree, humanFlag=True):
+        turnType = 0 # Normal Walking
+        if degree > self.minTurnDegree * 2:
+            turnType = 4 # Right Around
+        elif degree > 0.0:
+            turnType = 2 # Turn Right
+        elif degree > self.minTurnDegree * -2 and degree < 0.0:
+            turnType = 1 # Turn Left
+        else:
+            turnType = 3 # Left Around
+        return ActivityNameList[turnType] if humanFlag else turnType
 
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/ActivityDetector/20170702210514_acce.csv",
@@ -209,10 +220,12 @@ if __name__ == "__main__":
     anglePlot, = rotaAngleAxes.plot(gyroTimeList, rotaDegreeList, color="b", linestyle="--", label="Rotation Angle")
     for t in rtTimeList:
         rotaAngleAxes.axvline(t, ls=":", lw=2, color="#FF00CC")
-    print("Turns happen at:")
+    print("Turns Details as follows:")
     for i in range(0, len(rtTimeList), 2):
-        print("%s Start: %.3f and End: %.3f" % (simpleTd.turnTranslate(rtValueList[i+1] - rtValueList[i]),
-                                                rtTimeList[i], rtTimeList[i+1]))
+        turnDegree = rtValueList[i+1] - rtValueList[i]
+        print("%s about %.2f, Start: %.3f s and End: %.3f s" % (simpleTd.turnTranslate(turnDegree),
+                                                            turnDegree,
+                                                            rtTimeList[i], rtTimeList[i+1]))
     # rotaAngleAxes.yaxis.label.set_color(anglePlot.get_color())
 
     plt.legend(handles=[ratePlot, accePlot, anglePlot], loc=4)

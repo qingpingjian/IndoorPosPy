@@ -12,6 +12,7 @@ import numpy as np
 import scipy.signal as signal
 import sys
 
+from anglefunc import *
 from wififunc import wifiStrAnalysis
 
 """
@@ -21,14 +22,17 @@ minimum two step peak duration, minimum duration between end and next start poin
 : gyroscope peak threshold, valley threshold, minimum duration between two peak points,
 minimum slope belongs to mainly turning progress, minimum degree change belongs to mainly turning progress,
 maximum pause in turning progress, minimum degree for a left or right turn
+:standard deviation of step length(0.042 pete, 0.046 super)
 """
 modelParameterDict = {
     "pete": (0.85, -0.20, 0.380, 0.175,
              0.28927316, 0.21706846,
-             0.905, -0.905, 2.45, 15.0, 12.0, 1.725, 75.0),
+             0.905, -0.905, 2.45, 14.0, 12.0, 1.725, 66.5,
+             0.1),
     "super": (0.85, -0.20, 0.380, 0.175,
               0.21853894, 0.46235461,
-              0.905, -0.905, 2.45, 15.0, 12.0, 1.725, 75.0)
+              0.905, -0.905, 2.45, 14.0, 12.0, 1.725, 66.5,
+              0.1)
 }
 
 def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
@@ -102,30 +106,6 @@ def varOfAcce(timeList, valueList, windowSize):
     votList = [timeList[i] for i in range(midPos, len(valueList) - midPos)]
     varList = [np.var(valueList[i - midPos:i + midPos + 1]) for i in range(midPos, len(valueList) - midPos)]
     return votList, varList
-
-
-def angleNormalize(angle):
-    """
-    Keep angle in {0, 2pi)
-    :param angle:
-    :return: Normalized angle value
-    """
-    return (angle % (2.0 * math.pi) + 2.0 * math.pi) % (2.0 * math.pi)
-
-
-def meanAngle(angleList, normalize = True):
-    """
-    Calculate the average of a set of circular data in radian
-    :param angleList: a set of circular data
-    :return: average value in radian
-    """
-    sinSum = 0
-    cosSum = 0
-    for angle in angleList:
-        sinSum += math.sin(angle)
-        cosSum += math.cos(angle)
-    meanValue = math.atan2(sinSum, cosSum)
-    return angleNormalize(meanValue) if normalize else meanValue
 
 
 def rotationAngle(gyroTimeList, gyroValueList, normalize = True):

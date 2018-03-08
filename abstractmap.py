@@ -14,8 +14,7 @@ A <---> B <--> C <--> D <--> E <--> F <--> G
         R                                  |
 Q <---> P <-> O <-> N <-> M <-> L <-> K <->J
 """
-#  Normal walking (go straight), left turn, right turn, left around, right around
-edgeType = (0, 1, 2, 3, 4)
+
 building1305 = {
     "nodes":{"seg1":(1.2, 1.7,  3.14159,  1.2, 10.7, 0.0), # (AB)
              "seg2":(1.2, 10.7, 3.14159,  1.2, 23.7, 0.0), # (BC)
