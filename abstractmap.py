@@ -124,6 +124,8 @@ building1305 = {
 }
 
 import math
+import numpy as np
+import sys
 from anglefunc import angleNormalize, isHeadingMatch
 
 class DigitalMap(object):
@@ -131,8 +133,41 @@ class DigitalMap(object):
         self.mapGraph = mapGraph
         self.nodesDict = mapGraph.get("nodes")
         self.edgesArray = mapGraph.get("edges")
-        self.initProb = 1.0 # math.log(math.e)
+        self.initProb = -1.0 # math.log(1.0/math.e)
+        self.maxThres = 1.5 # The walking distance is too short, so give a big prob
+        self.minThres = 0.5 # The walking distance is too length, so the candidate is almost no prob.
         return
+
+    def isRelated(self, onePoint, otherPoint):
+        """
+        If it is reachable from onePoint to otherPoint through normal walking or another activities
+        return true, otherwise, return false
+        :param onePoint:  The end point of last segment
+        :param otherPoint:  the start point of current segment
+        :return:  True or False
+        """
+        return math.fabs(onePoint[0] - otherPoint[0]) < sys.float_info.epsilon and \
+                math.fabs(onePoint[1] - otherPoint[1]) < sys.float_info.epsilon
+
+    def isSamePoint(self, onePoint, otherPoint):
+        return math.fabs(onePoint[0] - otherPoint[0]) < sys.float_info.epsilon and \
+                math.fabs(onePoint[1] - otherPoint[1]) < sys.float_info.epsilon
+
+    def getAnotherPoint(self, segID, onePoint):
+        segAttr = self.nodesDict.get(segID)
+        firstPoint = (segAttr[0], segAttr[1])
+        secondPoint = (segAttr[3], segAttr[4])
+        return secondPoint if self.isSamePoint(onePoint, firstPoint) else firstPoint
+
+    def extendSegment(self, segID, endPoint):
+        for edge in self.edgesArray:
+            if len(edge) == 3:
+                continue
+            passedPoint = (edge[3], edge[4])
+            if edge[0] == segID and edge[2] == 0 and self.isRelated(endPoint, passedPoint):
+                return edge[1], self.getAnotherPoint(edge[1], passedPoint)
+            else:
+                return None
 
     def getSegmentLength(self, segIDArray):
         # TODO: Here, we donot check the segments are all in a straight narrow corridor
@@ -155,6 +190,22 @@ class DigitalMap(object):
             elif isHeadingMatch(normalWalkDir, secondAccessDir):
                 candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb])
         return candidateList
+
+    def emissionProb(self, stepLength, stepNum, stepStd, segIDArray, doLogOper=True):
+        travelDist = stepLength * stepNum
+        distStd = stepStd * stepNum
+        segLength = self.getSegmentLength(segIDArray)
+        # Both to multipled by math.sqrt(2.0 * math.pi) * distStd
+        probValue = 1.0 / math.e
+        if self.maxThres * travelDist <= segLength:
+            probValue = 1.0
+        elif self.minThres * travelDist > segLength:
+            probValue = 0.000000001
+        else:
+            probValue = np.exp((((travelDist - segLength)**2) / ( 2 * distStd**2))*(-1.0))
+        if doLogOper:
+            probValue = math.log(probValue)
+        return probValue
 
 
 if __name__ == "__main__":

@@ -261,4 +261,6 @@ def cdf(data, hasDuplicate=True):
     return retValue
 
 if __name__ == "__main__":
+    paras = modelParameterDict.get("pete")
+    print(paras[13])
     print("Done.")
