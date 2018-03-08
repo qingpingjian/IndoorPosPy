@@ -57,7 +57,7 @@ class WifiFingerprintPDR(PDR):
         # Count step
         acceValueArray = butterFilter(acceValueList)
         # Algorithm of step counter
-        sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
+        sc = SimpleStepCounter(self.personID)
         allIndexList = sc.countStep(acceTimeList, acceValueArray)
         stIndexList = allIndexList[0::3]
         stTimeList = [acceTimeList[i] for i in stIndexList]

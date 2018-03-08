@@ -16,12 +16,19 @@ from dataloader import loadAcceData
 
 
 class SimpleStepCounter(object):
+    def __init__(self, personID="pete"):
+        para = modelParameterDict.get("pete")
+        self.maxThreshold = para[0]
+        self.minThreshold = para[1]
+        self.durationThreshold = para[2]
+        self.intervalThreshold = para[3]
+        pass
 
-    def __init__(self, maxThreshold, minThreshold, durationThreshold, intervalThreshold):
-        self.maxThreshold = maxThreshold
-        self.minThreshold = minThreshold
-        self.durationThreshold = durationThreshold
-        self.intervalThreshold = intervalThreshold
+    # def __init__(self, maxThreshold, minThreshold, durationThreshold, intervalThreshold):
+    #     self.maxThreshold = maxThreshold
+    #     self.minThreshold = minThreshold
+    #     self.durationThreshold = durationThreshold
+    #     self.intervalThreshold = intervalThreshold
 
     # def getNextPeak(self, valueList, startIndex):
     #     """
@@ -150,9 +157,10 @@ if __name__ == "__main__" :
 
     acceValueArray = butterFilter(acceValueList)
 
-    para = modelParameterDict.get("pete")
+    # para = modelParameterDict.get("pete")
     # Algorithm of step counter
-    sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
+    # sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
+    sc = SimpleStepCounter(personID="pete")
     allIndexList = sc.countStep(acceTimeList, acceValueArray)
 
     peakIndexList = allIndexList[1::3]

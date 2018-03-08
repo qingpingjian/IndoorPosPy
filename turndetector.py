@@ -29,17 +29,17 @@ ActivityConfMat = [
 
 class SimpleTurnDetector(object):
 
-    def __init__(self, upperThreshold=0.905, lowerThreshold=-0.905, durationThreshold=2.45,
-                 minSlope=15.0, minRotDegree=12.0, maxPause=1.725, minTurnDegree=75.0):
+    def __init__(self, personID="pete"):
+        para = modelParameterDict.get(personID)
         # parameters for turning point finding algorithm
-        self.upperTd = upperThreshold   # radian/s
-        self.lowerTd = lowerThreshold   # radian/s
-        self.durationTd = durationThreshold # seconds
+        self.upperTd = para[6]   # radian/s
+        self.lowerTd = para[7]  # radian/s
+        self.durationTd = para[8] # seconds
         # parameters for turning degree detection algorithm
-        self.minSlope = minSlope    # degree/s
-        self.minRotDegree = minRotDegree    # degree
-        self.maxPause = maxPause    # seconds
-        self.minTurnDegree = minTurnDegree
+        self.minSlope = para[9]    # degree/s
+        self.minRotDegree = para[10]    # degree
+        self.maxPause = para[11]    # seconds
+        self.minTurnDegree = para[12]
 
     def turnPoint(self, timeList, valueList):
         # First, find peak points to find turning left and turning around left
@@ -188,9 +188,7 @@ if __name__ == "__main__":
     windowSize = 23
     gyroTimeList, gyroValueList = slidingWindowFilter(gyroTimeList, gyroValueList, windowSize)
 
-    para = modelParameterDict.get("pete")
-    simpleTd = SimpleTurnDetector(upperThreshold=para[6], lowerThreshold=para[7], durationThreshold=para[8],
-                                  minSlope=para[9], minRotDegree=para[10], maxPause=para[11], minTurnDegree=para[12])
+    simpleTd = SimpleTurnDetector(personID="pete")
     turnIndexList, rtDegreeIndexList = simpleTd.detectTurn(gyroTimeList, gyroValueList, rotaDegreeList)
 
     # Turn point time and value
