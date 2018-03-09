@@ -10,8 +10,11 @@ Created on 2018/3/6 下午11:19
 
 import math
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import sys
+
+matplotlib.rcParams['font.size'] = 15
 
 def drawHistogram(dataGroups, colors, patterns, labels, xTicks):
 
@@ -23,7 +26,7 @@ def drawHistogram(dataGroups, colors, patterns, labels, xTicks):
     opacity = 0.4
     for i, dataGroup in enumerate(dataGroups):
         rectArray = axCvg.bar(index + i * bar_width, dataGroup, bar_width, alpha=opacity,
-                              color=colors[i], hatch=patterns[i], edgecolor="#dddddd", label=labels[i])
+                              color=colors[i], hatch=patterns[i], edgecolor="black", label=labels[i])
         for j, rect in enumerate(rectArray):
             h = rect.get_height()
             axCvg.text(rect.get_x() + rect.get_width() / 2, h,

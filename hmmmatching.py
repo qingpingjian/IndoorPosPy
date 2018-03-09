@@ -133,6 +133,7 @@ class SegmentHMMMatcher(object):
             if turnAtStepIndexList[i] == endTurnAtStepIndexList[i]:
                 endTurnAtStepIndexList[i] = turnAtStepIndexList[i] + 1
 
+        # Reset the data storage of online viterbi algorithm
         self.onlineEstList = []
         self.viterbiList = []
         #Map Matching based on steps and turns
@@ -141,9 +142,13 @@ class SegmentHMMMatcher(object):
         # Initial point estimation
         initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
         print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
-        #self.onlineEstList.append((initPoint[0], initPoint[1]))
+        self.onlineEstList.append((initPoint[0], initPoint[1]))
         # TODO: give the initial point firstly
-        self.onlineEstList.append((49.8, 1.95))
+        #self.onlineEstList.append((49.8, 1.95))
+        if len(candidateList) > 1:
+            self.matchStatus = "mult"
+        elif len(candidateList) == 1:
+            self.matchStatus = "covg"
         # Calculate the real directions for each step
         dirList = [r + startingDirection for r in rotaValueList]
         # Secondly, update locations for each step
@@ -160,13 +165,43 @@ class SegmentHMMMatcher(object):
             # then, update segment candidate,
             if i == endTurnAtStepIndexList[currentTurnNum]:
                 self.viterbiList.append(candidateList)
+                # Now, we have a new segment candidate list
                 candidateList = self.digitalMap.nextSegment(turnTypeList[currentTurnNum], candidateList)
-                # TODO: How to record combined prob., need to add this information
-                # TODO:
-                if (self.matchStatus == "covg"): # loccation estimation and direction
-                    pass
+                # Check and update the new candidates
+                j = turnAtStepIndexList[currentTurnNum]
+                stepNumInSeg = i - j # Have walked i-j steps after turning
+                candidateList = self.checkSegment(stepLength, stepNumInSeg, stepDeviation, candidateList)
+                # update the matching status
+                if (len(candidateList) == 1):
+                    self.matchStatus = "covg"
+                rotStartIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
+                currentGyroIndex = rotStartIndex - 1
+                rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
+                currentGyroIndex = rotEndIndex - 1
+                # The direction and starting point updation
+                if self.matchStatus == "covg":  # loccation estimation and direction
+                    # update heading direction
+                    headingBasedSeg =self.digitalMap.getHeadingDirection(candidateList[0][4][-1], (candidateList[0][2], candidateList[0][3]))
+                    dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingBasedSeg) for dir in dirList]
+                    direction = dirList[rotEndIndex]  # This direction should equal to headingBasedSeg
+                    if (turnTypeList[currentTurnNum] > 2):  # Turn around activity can not get the turn points, then we used the pdr one
+                        lastLoc = self.onlineEstList[-1]
+                        xLoc = lastLoc[0] + stepLength * math.sin(direction)
+                        yLoc = lastLoc[1] + stepLength * math.cos(direction)
+                        self.onlineEstList.append((xLoc, yLoc))
+                    else:  # we suppose that the direction should not change after turnning.
+                        passedPoint = (candidateList[0][0], candidateList[0][1])
+                        xLoc = passedPoint[0] + stepNumInSeg * stepLength * math.sin(direction)
+                        yLoc = passedPoint[1] + stepNumInSeg * stepLength * math.cos(direction)
+                        self.onlineEstList.append((xLoc, yLoc))
                 else: # update location estimation by new candidates starting points
-                    pass
+                    turnPoints = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
+                    newHeading = meanAngle([self.digitalMap.getHeadingDirection(candidate[4][-1], (candidate[2], candidate[3]))
+                                            for candidate in candidateList], normalize=True)
+                    print(turnPoints)
+                    xLoc = turnPoints[0] + stepNumInSeg * stepLength * math.sin(newHeading)
+                    yLoc = turnPoints[1] + stepNumInSeg * stepLength * math.cos(newHeading)
+                    self.onlineEstList.append((xLoc, yLoc))
                 # Ready to the next activity
                 currentTurnNum = currentTurnNum + 1
             else:
@@ -175,24 +210,17 @@ class SegmentHMMMatcher(object):
                 candidateList = self.checkSegment(stepLength, stepNumInSeg, stepDeviation, candidateList)
                 if len(candidateList) == 1:
                     self.matchStatus = "covg"
-
-                if (False): # step after turns
-                    pass
-                else:
-                    # stepLength = para[4] * (1.0 / (aeTime - asTime)) +  para[5]
-                    rotStartIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
-                    currentGyroIndex = rotStartIndex - 1
-                    rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
-                    currentGyroIndex = rotEndIndex - 1
-                    direction = meanAngle(dirList[rotStartIndex:rotEndIndex + 1])
-                    lastLoc = self.onlineEstList[-1]
-                    xLoc = lastLoc[0] + stepLength * math.sin(direction)
-                    yLoc = lastLoc[1] + stepLength * math.cos(direction)
-                    self.onlineEstList.append((xLoc, yLoc))
+                rotStartIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
+                currentGyroIndex = rotStartIndex - 1
+                rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
+                currentGyroIndex = rotEndIndex - 1
+                direction = meanAngle(dirList[rotStartIndex:rotEndIndex + 1])
+                lastLoc = self.onlineEstList[-1]
+                xLoc = lastLoc[0] + stepLength * math.sin(direction)
+                yLoc = lastLoc[1] + stepLength * math.cos(direction)
+                self.onlineEstList.append((xLoc, yLoc))
         self.viterbiList.append(candidateList)
         return
-
-
 
 
 if __name__ == "__main__":

@@ -159,6 +159,11 @@ class DigitalMap(object):
         secondPoint = (segAttr[3], segAttr[4])
         return secondPoint if self.isSamePoint(onePoint, firstPoint) else firstPoint
 
+    def getHeadingDirection(self, segID, frontPoint):
+        segAttr = self.nodesDict.get(segID)
+        firstPoint = (segAttr[0], segAttr[1])
+        return segAttr[2] if self.isSamePoint(frontPoint, firstPoint) else segAttr[5]
+
     def extendSegment(self, segID, endPoint):
         for edge in self.edgesArray:
             if len(edge) == 3:
@@ -179,6 +184,11 @@ class DigitalMap(object):
         return length
 
     def extractSegmentByDir(self, walkingDir=0.0):
+        """
+        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLastTime, probCurrent, pLastSegment]
+        :param walkingDir:
+        :return:
+        """
         normalWalkDir = angleNormalize(walkingDir)
         candidateList = []
         for id, attr in self.nodesDict.iteritems():
@@ -186,9 +196,9 @@ class DigitalMap(object):
             secondAccessDir = attr[5]  # The accessible direction of the second endpoint
             if isHeadingMatch(normalWalkDir, firstAccessDir):
                 # The second point is starting point and the first point is the next point
-                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb])
+                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, 0.0])
             elif isHeadingMatch(normalWalkDir, secondAccessDir):
-                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb])
+                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, 0.0])
         return candidateList
 
     def emissionProb(self, stepLength, stepNum, stepStd, segIDArray, doLogOper=True):
@@ -214,18 +224,20 @@ class DigitalMap(object):
             lastSegId = candidate[4][-1]
             originTargetPoint = (candidate[2], candidate[3])
             for edge in self.edgesArray:
+                if len(edge) == 3:
+                    continue
                 if turnType == 3 or turnType == 4:
                     if edge[0] == lastSegId and edge[2] == turnType:
                         endPoint = self.getAnotherPoint(edge[1], originTargetPoint)
                         nextCandidateList.append([originTargetPoint[0], originTargetPoint[1], endPoint[0], endPoint[1],
-                                                  [edge[1]], candidate[6], candidate[6]])
+                                                  [edge[1]], self.initProb, self.initProb, candidate[6]])
                         break
                 elif turnType == 1 or turnType == 2:
                     passedPoint = (edge[3], edge[4])
                     if edge[0] == lastSegId and edge[2] == turnType and self.isRelated(originTargetPoint, passedPoint):
                         endPoint = self.getAnotherPoint(edge[1], passedPoint)
                         nextCandidateList.append([passedPoint[0], passedPoint[1], endPoint[0], endPoint[1],
-                                                  [edge[1]], candidate[6], candidate[6]])
+                                                  [edge[1]], self.initProb, self.initProb, candidate[6]])
                         break
         return nextCandidateList
 
