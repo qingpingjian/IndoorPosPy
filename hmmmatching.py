@@ -22,7 +22,7 @@ class SegmentHMMMatcher(object):
     def __init__(self, personID="pete"):
         self.personID = personID
         self.matchStatus = "init" # "init", "mult", "covg"
-        self.lowProbThres = -25.0 # math.log(very little prob. value)
+        self.lowProbThres = -10.0 # math.log(very little prob. value)
         self.stepNumAfterTurn = 2
         return
 
@@ -167,10 +167,12 @@ class SegmentHMMMatcher(object):
                 self.viterbiList.append(candidateList)
                 # Now, we have a new segment candidate list
                 candidateList = self.digitalMap.nextSegment(turnTypeList[currentTurnNum], candidateList)
+                print ("Can list length is %d and %d" % (len(candidateList), turnTypeList[currentTurnNum]))
                 # Check and update the new candidates
                 j = turnAtStepIndexList[currentTurnNum]
                 stepNumInSeg = i - j # Have walked i-j steps after turning
                 candidateList = self.checkSegment(stepLength, stepNumInSeg, stepDeviation, candidateList)
+                print ("Candit list length is %d" % len(candidateList))
                 # update the matching status
                 if (len(candidateList) == 1):
                     self.matchStatus = "covg"
@@ -195,12 +197,14 @@ class SegmentHMMMatcher(object):
                         yLoc = passedPoint[1] + stepNumInSeg * stepLength * math.cos(direction)
                         self.onlineEstList.append((xLoc, yLoc))
                 else: # update location estimation by new candidates starting points
+                    print("The number candidate now is %d" % len(candidateList))
                     turnPoints = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
                     newHeading = meanAngle([self.digitalMap.getHeadingDirection(candidate[4][-1], (candidate[2], candidate[3]))
                                             for candidate in candidateList], normalize=True)
                     print(turnPoints)
-                    xLoc = turnPoints[0] + stepNumInSeg * stepLength * math.sin(newHeading)
-                    yLoc = turnPoints[1] + stepNumInSeg * stepLength * math.cos(newHeading)
+                    print(newHeading)
+                    xLoc = float(turnPoints[0]) + stepNumInSeg * stepLength * math.sin(newHeading)
+                    yLoc = float(turnPoints[1]) + stepNumInSeg * stepLength * math.cos(newHeading)
                     self.onlineEstList.append((xLoc, yLoc))
                 # Ready to the next activity
                 currentTurnNum = currentTurnNum + 1
