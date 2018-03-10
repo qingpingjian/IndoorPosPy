@@ -5,8 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
+import pandas as pd
+
 # Environment Configuration
-matplotlib.rcParams['font.size'] = 30
+matplotlib.rcParams['font.size'] = 20
 
 def loadErrorData(positionErrorFilePath):
     positionErrorFilePath = unicode(positionErrorFilePath, "utf-8")
@@ -17,37 +19,42 @@ def loadErrorData(positionErrorFilePath):
     return errorList
 
 if __name__ == "__main__":
-    pdrErrorRT1FilePath = "./RouteOne/20170702201525_route1_err_pdr.txt"
-    pdrErrorRT2FilePath = "./RouteTwo/20170702201525_route2_err_pdr.txt"
-    pdrErrorRT3FilePath = "./RouteThree/20170702201525_route3_err_pdr.txt"
-    pdrErrorRT4FilePath = "./RouteFour/20170702201525_route4_err_pdr.txt"
+    pdrErrorRT1FilePath = "t1_2_20180302213910_route_error_pdr.csv"
+    pdrErrorRT2FilePath = "t2_2_20180303165821_route_error_pdr.csv"
+    pdrErrorRT3FilePath = "t3_4_20180303143913_route_error_pdr.csv"
 
-    hmmErrorRT1FilePath = "./RouteOneSub/20170702201525_route1_err_pdr.txt"
-    hmmErrorRT2FilePath = "./RouteTwoSub/20170702201525_route2_err_pdr.txt"
-    hmmErrorRT3FilePath = "./RouteThreeSub/20170702201525_route3_err_pdr.txt"
-    hmmErrorTR4FilePath = "./RouteFourSub/20170702201525_route4_err_pdr.txt"
+    hmmErrorRT1FilePath = "20180302213910_route_error_pdr_online.csv"
+    hmmErrorRT2FilePath = "20180303165821_route_error_pdr_online.csv"
+    hmmErrorRT3FilePath = "20180303143913_route_error_pdr.csv"
 
-    perOneList = loadErrorData(pdrErrorRT1FilePath)
-    herOneList = loadErrorData(hmmErrorRT1FilePath)
+    hmmErrorRT1FilePath = "20180302213910_route_error_aifi_online_0305.csv"
+    hmmErrorRT2FilePath = "20180303165821_route_error_aifi_online_0305.csv"
+    hmmErrorRT3FilePath = "20180303143913_route_error_aifi_online_0305.csv"
 
-    perTwoList = loadErrorData(pdrErrorRT2FilePath)
-    herTwoList = loadErrorData(hmmErrorRT2FilePath)
+    perOneDF = pd.read_csv(pdrErrorRT1FilePath)
+    perOneList = perOneDF.values
+    herOneDF = pd.read_csv(hmmErrorRT1FilePath)
+    herOneList = herOneDF.values
 
-    perThreeList = loadErrorData(pdrErrorRT3FilePath)
-    herThreeList = loadErrorData(hmmErrorRT3FilePath)
+    perTwoDF = pd.read_csv(pdrErrorRT2FilePath)
+    perTwoList = perTwoDF.values
+    herTwoDF = pd.read_csv(hmmErrorRT2FilePath)
+    herTwoList = herTwoDF.values
 
-    perFourList = loadErrorData(pdrErrorRT4FilePath)
-    herFourList = loadErrorData(hmmErrorTR4FilePath)
+    perThreeDF = pd.read_csv(pdrErrorRT3FilePath)
+    perThreeList = perThreeDF.values
+    herThreeDF = pd.read_csv(hmmErrorRT3FilePath)
+    herThreeList = herThreeDF.values
 
     # Plot the axes
     fig = plt.figure()
-    rtOneAxe = plt.subplot(221)
-    oneYMajorLocator = MultipleLocator(1.0)
+    rtOneAxe = plt.subplot(131)
+    oneYMajorLocator = MultipleLocator(10.0)
     oneYMajorFormatter = FormatStrFormatter("%.1f")
-    oneYMinorLocator = MultipleLocator(0.5)
-    oneXMajorLocator = MultipleLocator(10)
+    oneYMinorLocator = MultipleLocator(4)
+    oneXMajorLocator = MultipleLocator(50)
     oneXMajorFormatter = FormatStrFormatter("%d")
-    oneXMinorLocator = MultipleLocator(5)
+    oneXMinorLocator = MultipleLocator(25)
     rtOneAxe.yaxis.set_major_locator(oneYMajorLocator)
     rtOneAxe.yaxis.set_major_formatter(oneYMajorFormatter)
     rtOneAxe.yaxis.set_minor_locator(oneYMinorLocator)
@@ -58,16 +65,17 @@ if __name__ == "__main__":
     rtOneAxe.set_ylabel("$Position\ Error(m)$")
     rtOneAxe.set_title("(a)")
     #rtOneAxe.set_title("$(a)Position\ Error\ of\ Route\ 1$")
-    rtOnePDR, = rtOneAxe.plot(range(len(perOneList)), perOneList, color="blue", lw=7, linestyle="--", label="PDR")
-    rtOneHMM, = rtOneAxe.plot(range(len(herOneList)), herOneList, color="red", lw=7, linestyle="-", label="PDR+HMM")
-    rtOneAxe.legend(loc="best", fontsize=20)
+    rtOnePDR, = rtOneAxe.plot(range(len(perOneList)), perOneList, color="blue", lw=2, linestyle="--", label="Basic PDR")
+    rtOneHMM, = rtOneAxe.plot(range(len(herOneList)), herOneList, color="red", lw=2, linestyle="-", label="AiFiMatch")
+    #rtOneAxe.legend(loc="best", fontsize=20)
+    rtOneAxe.legend(loc="best")
     plt.grid()
 
-    rtTwoAxe = plt.subplot(222)
-    twoYMajorLocator = MultipleLocator(3.5)
+    rtTwoAxe = plt.subplot(132)
+    twoYMajorLocator = MultipleLocator(10)
     twoYMajorFormatter = FormatStrFormatter("%.1f")
-    twoYMinorLocator = MultipleLocator(1.0)
-    twoXMajorLocator = MultipleLocator(30)
+    twoYMinorLocator = MultipleLocator(4.0)
+    twoXMajorLocator = MultipleLocator(20)
     twoXMajorFormatter = FormatStrFormatter("%d")
     twoXMinorLocator = MultipleLocator(10)
     rtTwoAxe.yaxis.set_major_locator(twoYMajorLocator)
@@ -80,18 +88,18 @@ if __name__ == "__main__":
     rtTwoAxe.set_ylabel("$Position\ Error(m)$")
     rtTwoAxe.set_title("(b)")
     #rtTwoAxe.set_title("$(b)Position\ Error\ of\ Route\ 2$")
-    rtTwoPDR, = rtTwoAxe.plot(range(len(perTwoList)), perTwoList, color="blue", lw=7, linestyle="--", label="PDR")
-    rtTwoHMM, = rtTwoAxe.plot(range(len(herTwoList)), herTwoList, color="red", lw=7, linestyle="-", label="PDR+HMM")
-    rtTwoAxe.legend(loc=2, fontsize=20)
+    rtTwoPDR, = rtTwoAxe.plot(range(len(perTwoList)), perTwoList, color="blue", lw=2, linestyle="--", label="Basic PDR")
+    rtTwoHMM, = rtTwoAxe.plot(range(len(herTwoList)), herTwoList, color="red", lw=2, linestyle="-", label="AiFiMatch")
+    rtTwoAxe.legend(loc="best")
     plt.grid()
 
-    rtThreeAxe = plt.subplot(223)
-    threeYMajorLocator = MultipleLocator(1.0)
+    rtThreeAxe = plt.subplot(133)
+    threeYMajorLocator = MultipleLocator(10.0)
     threeYMajorFormatter = FormatStrFormatter("%.1f")
-    threeYMinorLocator = MultipleLocator(0.5)
-    threeXMajorLocator = MultipleLocator(10)
+    threeYMinorLocator = MultipleLocator(4)
+    threeXMajorLocator = MultipleLocator(50)
     threeXMajorFormatter = FormatStrFormatter("%d")
-    threeXMinorLocator = MultipleLocator(5)
+    threeXMinorLocator = MultipleLocator(25)
     rtThreeAxe.yaxis.set_major_locator(threeYMajorLocator)
     rtThreeAxe.yaxis.set_major_formatter(threeYMajorFormatter)
     rtThreeAxe.yaxis.set_minor_locator(threeYMinorLocator)
@@ -102,34 +110,11 @@ if __name__ == "__main__":
     rtThreeAxe.set_ylabel("$Position\ Error(m)$")
     rtThreeAxe.set_title("(c)")
     #rtThreeAxe.set_title("$(c)Position\ Error\ of\ Route\ 3$")
-    rtThreePDR, = rtThreeAxe.plot(range(len(perThreeList)), perThreeList, color="blue", lw=7,
-                                  linestyle="--", label="PDR")
-    rtThreeHMM, = rtThreeAxe.plot(range(len(herThreeList)), herThreeList, color="red", lw=7,
-                                  linestyle="-", label="PDR+HMM")
-    rtThreeAxe.legend(loc="best", fontsize=20)
-    plt.grid()
-
-    rtFourAxe = plt.subplot(224)
-    fourYMajorLocator = MultipleLocator(2.0)
-    fourYMajorFormatter = FormatStrFormatter("%.1f")
-    fourYMinorLocator = MultipleLocator(1.0)
-    fourXMajorLocator = MultipleLocator(20)
-    fourXMajorFormatter = FormatStrFormatter("%d")
-    fourXMinorLocator = MultipleLocator(10)
-    rtFourAxe.yaxis.set_major_locator(fourYMajorLocator)
-    rtFourAxe.yaxis.set_major_formatter(fourYMajorFormatter)
-    rtFourAxe.yaxis.set_minor_locator(fourYMinorLocator)
-    rtFourAxe.xaxis.set_major_locator(fourXMajorLocator)
-    rtFourAxe.xaxis.set_major_formatter(fourXMajorFormatter)
-    rtFourAxe.xaxis.set_minor_locator(fourXMinorLocator)
-    rtFourAxe.set_xlabel("$Step\ Number$")
-    rtFourAxe.set_ylabel("$Position\ Error(m)$")
-    rtFourAxe.set_title("(d)")
-    #rtFourAxe.set_title("$(d)Position\ Error\ of\ Route\ 4$")
-    rtFourPDR, = rtFourAxe.plot(range(len(perFourList)), perFourList, color="blue", lw=7, linestyle="--", label="PDR")
-    rtFourWiFi, = rtFourAxe.plot(range(len(herFourList)), herFourList, color="red", lw=7,
-                                  linestyle="-", label="PDR+HMM")
-    rtFourAxe.legend(loc="best", fontsize=20)
+    rtThreePDR, = rtThreeAxe.plot(range(len(perThreeList)), perThreeList, color="blue", lw=2,
+                                  linestyle="--", label="Basic PDR")
+    rtThreeHMM, = rtThreeAxe.plot(range(len(herThreeList)), herThreeList, color="red", lw=2,
+                                  linestyle="-", label="AiFiMatch")
+    rtThreeAxe.legend(loc="best")
     plt.grid()
 
     plt.show()
