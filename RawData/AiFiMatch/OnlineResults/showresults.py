@@ -19,17 +19,17 @@ def loadErrorData(positionErrorFilePath):
     return errorList
 
 if __name__ == "__main__":
-    pdrErrorRT1FilePath = "t1_2_20180302213910_route_error_pdr.csv"
-    pdrErrorRT2FilePath = "t2_2_20180303165821_route_error_pdr.csv"
-    pdrErrorRT3FilePath = "t3_4_20180303143913_route_error_pdr.csv"
-
-    hmmErrorRT1FilePath = "20180302213910_route_error_pdr_online.csv"
-    hmmErrorRT2FilePath = "20180303165821_route_error_pdr_online.csv"
-    hmmErrorRT3FilePath = "20180303143913_route_error_pdr.csv"
+    pdrErrorRT1FilePath = "20180302213910_route_error_pdr_t1_2.csv"
+    pdrErrorRT2FilePath = "20180303165821_route_error_pdr_t2_2.csv"
+    pdrErrorRT3FilePath = "20180303143913_route_error_pdr_t3_4.csv"
 
     hmmErrorRT1FilePath = "20180302213910_route_error_aifi_online_0305.csv"
     hmmErrorRT2FilePath = "20180303165821_route_error_aifi_online_0305.csv"
     hmmErrorRT3FilePath = "20180303143913_route_error_aifi_online_0305.csv"
+
+    # hmmErrorRT1FilePath = "20180302213910_route_error_aifi_online_0305.csv"
+    # hmmErrorRT2FilePath = "20180303165821_route_error_aifi_online_0305.csv"
+    # hmmErrorRT3FilePath = "20180303143913_route_error_aifi_online_0310.csv"  # coming from hmmmatching viterbi online result
 
     perOneDF = pd.read_csv(pdrErrorRT1FilePath)
     perOneList = perOneDF.values
