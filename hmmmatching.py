@@ -22,8 +22,7 @@ class SegmentHMMMatcher(object):
     def __init__(self, personID="pete"):
         self.personID = personID
         self.matchStatus = "init" # "init", "mult", "covg"
-        self.lowProbThres = -10.0 # math.log(very little prob. value)
-        self.stepNumAfterTurn = 2
+        self.lowProbThres = -20.0 # math.log(very little prob. value)
         return
 
     def updateDigitalMap(self, indoorMap):
@@ -40,6 +39,8 @@ class SegmentHMMMatcher(object):
         :param : candidates array
         :return: filterd candidates array
         """
+        # check the new prob of candidates unless there is only one segment left
+        filteredCandidates = []
         # update probability for each segment candidate
         for candidate in candidateList:
             prob = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, candidate[4])
@@ -47,26 +48,31 @@ class SegmentHMMMatcher(object):
             candidate[6] = prob
             # The probability is small enough
             # and the current pobability is low than the last one.
-            if prob < self.lowProbThres and candidate[6] < candidate[5]:
-                nextSegment = self.digitalMap.extendSegment(candidate[4][-1], (candidate[2], candidate[3]))
-                if nextSegment != None:
-                    # update candidate for the new result
+            segIDArray = [segID for segID in candidate[4]]
+            travelDist = stepLength * stepNum
+            travelDeviation = stepNum * stepStd
+            while True:
+                segLength = self.digitalMap.getSegmentLength(segIDArray)
+                if travelDist > segLength - travelDeviation and candidate[6] < candidate[5]:
+                    # Try to extend segment
+                    nextSegment = self.digitalMap.extendSegment(candidate[4][-1], (candidate[2], candidate[3]))
+                    if nextSegment == None: # This candidate can not extend
+                        break
                     newSeg = nextSegment[0]
                     newEnd = nextSegment[1]
-                    candidate[2] = newEnd[0]
-                    candidate[3] = newEnd[1]
-                    candidate[4].append(newSeg)
-                    newProb = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, candidate[4])
-                    candidate[5] = candidate[6]
-                    candidate[6] = newProb
-        # check the new prob of candidates unless there is only one segment left
-        filteredCandidates = []
-        if len(candidateList) == 1:
-            filteredCandidates = candidateList
-        else:
-            for candidate in candidateList:
-                if candidate[6] > self.lowProbThres:
-                    filteredCandidates.append(candidate)
+                    segIDArray.append(newSeg)
+                    if travelDist <= self.digitalMap.getSegmentLength(segIDArray) - travelDeviation:
+                        # Now, we have extended enough
+                        newProb = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, segIDArray)
+                        newCandidate = [candidate[0], candidate[1], newEnd[0], newEnd[1], segIDArray, candidate[6], newProb]
+                        filteredCandidates.append(newCandidate)
+                        break
+                else:
+                    break
+        #TODO: How about there is only one candidate left
+        for candidate in candidateList:
+            if candidate[6] > self.lowProbThres:
+                filteredCandidates.append(candidate)
         return filteredCandidates
 
     def onlineViterbi(self, acceTimeList, acceValueList,

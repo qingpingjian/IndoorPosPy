@@ -134,8 +134,7 @@ class DigitalMap(object):
         self.nodesDict = mapGraph.get("nodes")
         self.edgesArray = mapGraph.get("edges")
         self.initProb = -1.0 # math.log(1.0/math.e)
-        self.maxThres = 1.5 # The walking distance is too short, so give a big prob
-        self.minThres = 0.5 # The walking distance is too length, so the candidate is almost no prob.
+        self.startStageThres = 1.5 # The walking distance is too short, so give a big prob
         return
 
     def isRelated(self, onePoint, otherPoint):
@@ -194,9 +193,9 @@ class DigitalMap(object):
             secondAccessDir = attr[5]  # The accessible direction of the second endpoint
             if isHeadingMatch(normalWalkDir, firstAccessDir):
                 # The second point is starting point and the first point is the next point
-                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, 0.0])
+                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, -30.0])
             elif isHeadingMatch(normalWalkDir, secondAccessDir):
-                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, 0.0])
+                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, -30.0])
         return candidateList
 
     def emissionProb(self, stepLength, stepNum, stepStd, segIDArray, doLogOper=True):
@@ -205,10 +204,8 @@ class DigitalMap(object):
         segLength = self.getSegmentLength(segIDArray)
         # Both to multipled by math.sqrt(2.0 * math.pi) * distStd
         probValue = 1.0 / math.e
-        if self.maxThres * travelDist <= segLength:
-            probValue = 1.0
-        elif self.minThres * travelDist > segLength:
-            probValue = 0.000000001
+        if self.startStageThres * travelDist <= segLength: # a half of the length
+            probValue = 1.0 / math.e
         else:
             probValue = np.exp((((travelDist - segLength)**2) / ( 2 * distStd**2))*(-1.0))
         if doLogOper:
