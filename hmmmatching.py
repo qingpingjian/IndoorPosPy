@@ -56,7 +56,7 @@ class SegmentHMMMatcher(object):
             segLength = self.digitalMap.getSegmentLength(candidate[4])
             if candidate[8] == 0 and travelDist + travelDeviation >= segLength and candidate[6] < candidate[5]:
                 # Log information
-                print("Try to extend %s at step %d" % (candidate[4], stepNum))
+                # print("Try to extend %s at step %d" % (candidate[4], stepNum))
                 # Try to extend segment
                 nextSegment = self.digitalMap.extendSegment(candidate[4][-1], (candidate[2], candidate[3]))
                 if nextSegment == None: # The candidate can not extend
@@ -84,15 +84,15 @@ class SegmentHMMMatcher(object):
         return filteredCandidateList
 
     def nextCandidate(self, turnType, candidateList):
-        #print(candidateList)
+        print(candidateList)
         # Now we meet a turn, then we should calcualte the most prob. segments based on turn types
         nextCandidateList = []
         for candidate in candidateList:
             nextCandidate = self.digitalMap.nextCandidateByActivity(candidate[4][-1], turnType, (candidate[2], candidate[3]), candidate[7])
             if nextCandidate != None:
                 nextCandidateList.append(nextCandidate)
-        print("Num of next candidate is %d" % len(nextCandidateList))
-        # print(nextCandidateList)
+        # print("Num of next candidate is %d" % len(nextCandidateList))
+        print(nextCandidateList)
         return nextCandidateList
 
     def onlineViterbi(self, acceTimeList, acceValueList,
@@ -170,9 +170,9 @@ class SegmentHMMMatcher(object):
         # Initial point estimation
         initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
         print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
-        #self.onlineEstList.append((initPoint[0], initPoint[1]))
+        self.onlineEstList.append((initPoint[0], initPoint[1]))
         # TODO: give the initial point firstly
-        self.onlineEstList.append((49.8, 1.95))
+        # self.onlineEstList.append((49.8, 1.95))
         if len(candidateList) > 1:
             self.matchStatus = "mult"
         elif len(candidateList) == 1:
@@ -191,7 +191,8 @@ class SegmentHMMMatcher(object):
             aeTime = edTimeList[i]
             # If this is the end of some activity,
             # then, update segment candidate,
-            if i == endTurnAtStepIndexList[currentTurnNum] and False:
+            # if i == endTurnAtStepIndexList[currentTurnNum] and False:
+            if currentTurnNum < len(endTurnAtStepIndexList) and i == endTurnAtStepIndexList[currentTurnNum]:
                 self.viterbiList.append(candidateList)
                 # Now, we should have a new segment candidate list
                 candidateList = self.nextCandidate(turnTypeList[currentTurnNum], candidateList)
