@@ -22,7 +22,6 @@ class SegmentHMMMatcher(object):
     def __init__(self, personID="pete"):
         self.personID = personID
         self.matchStatus = "init" # "init", "mult", "covg"
-        self.lowProbThres = -20.0 # math.log(very little prob. value)
         return
 
     def updateDigitalMap(self, indoorMap):
@@ -34,46 +33,67 @@ class SegmentHMMMatcher(object):
     def checkSegment(self, stepLength, stepNum, stepStd, candidateList):
         """
         segment candidates List,
-        [ [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLast, probCurrent],
-        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLast, probCurrent], ]
+        [ [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLast, probCurrent, pLastBeforeActivity, extendNum],
+        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLast, probCurrent, pLastBeforeActivity, extendNum], ]
+        if extendNum == 0， we can extend this candidate, if there is no segment, set to -1,
+        otherwise set it to 1, add new candidate
+        if extendNum == -1 and prob is low enough, we can filtered it out.
+        if extendNum == 1 and prob is low enough, we can filtered it out
         :param : candidates array
         :return: filterd candidates array
         """
         # check the new prob of candidates unless there is only one segment left
-        filteredCandidates = []
+        newCandidates = []
         # update probability for each segment candidate
         for candidate in candidateList:
             prob = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, candidate[4])
             candidate[5] = candidate[6] # update the prob
             candidate[6] = prob
-            # The probability is small enough
-            # and the current pobability is low than the last one.
-            segIDArray = [segID for segID in candidate[4]]
+
+            # Maybe we can extend this segment
             travelDist = stepLength * stepNum
             travelDeviation = stepNum * stepStd
-            while True:
-                segLength = self.digitalMap.getSegmentLength(segIDArray)
-                if travelDist > segLength - travelDeviation and candidate[6] < candidate[5]:
-                    # Try to extend segment
-                    nextSegment = self.digitalMap.extendSegment(candidate[4][-1], (candidate[2], candidate[3]))
-                    if nextSegment == None: # This candidate can not extend
-                        break
+            segLength = self.digitalMap.getSegmentLength(candidate[4])
+            if candidate[8] == 0 and travelDist + travelDeviation >= segLength and candidate[6] < candidate[5]:
+                # Log information
+                print("Try to extend %s at step %d" % (candidate[4], stepNum))
+                # Try to extend segment
+                nextSegment = self.digitalMap.extendSegment(candidate[4][-1], (candidate[2], candidate[3]))
+                if nextSegment == None: # The candidate can not extend
+                    candidate[8] = -1
+                else:
                     newSeg = nextSegment[0]
                     newEnd = nextSegment[1]
+                    segIDArray = [segID for segID in candidate[4]]
                     segIDArray.append(newSeg)
-                    if travelDist <= self.digitalMap.getSegmentLength(segIDArray) - travelDeviation:
-                        # Now, we have extended enough
-                        newProb = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, segIDArray)
-                        newCandidate = [candidate[0], candidate[1], newEnd[0], newEnd[1], segIDArray, candidate[6], newProb]
-                        filteredCandidates.append(newCandidate)
-                        break
-                else:
-                    break
-        #TODO: How about there is only one candidate left
+                    newProb = self.digitalMap.emissionProb(stepLength, stepNum, stepStd, segIDArray)
+                    # Now, we have find a new candidate and we need this candidate
+                    candidate[8] = 1
+                    newCandidate = [candidate[0], candidate[1], newEnd[0], newEnd[1], segIDArray, candidate[6], newProb, candidate[7], 0]
+                    newCandidates.append(newCandidate)
+
+        # There is only one candidate left
+        newCandidates.extend(candidateList)
+        if len(newCandidates) == 1:
+            print("The online viterbi algorithm should be convergence")
+            return newCandidates
+        filteredCandidateList = []
+        for candidate in newCandidates:
+            if candidate[6] > self.digitalMap.minProb:
+                filteredCandidateList.append(candidate)
+        return filteredCandidateList
+
+    def nextCandidate(self, turnType, candidateList):
+        #print(candidateList)
+        # Now we meet a turn, then we should calcualte the most prob. segments based on turn types
+        nextCandidateList = []
         for candidate in candidateList:
-            if candidate[6] > self.lowProbThres:
-                filteredCandidates.append(candidate)
-        return filteredCandidates
+            nextCandidate = self.digitalMap.nextCandidateByActivity(candidate[4][-1], turnType, (candidate[2], candidate[3]), candidate[7])
+            if nextCandidate != None:
+                nextCandidateList.append(nextCandidate)
+        print("Num of next candidate is %d" % len(nextCandidateList))
+        # print(nextCandidateList)
+        return nextCandidateList
 
     def onlineViterbi(self, acceTimeList, acceValueList,
                       gyroTimeList, gyroValueList,
@@ -142,26 +162,28 @@ class SegmentHMMMatcher(object):
         # Reset the data storage of online viterbi algorithm
         self.onlineEstList = []
         self.viterbiList = []
+
         #Map Matching based on steps and turns
         # First, initial candidates from initial direction
         candidateList = self.digitalMap.extractSegmentByDir(startingDirection)
+        print("The initial number of segment candidate is %d" % (len(candidateList)))
         # Initial point estimation
         initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
         print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
-        self.onlineEstList.append((initPoint[0], initPoint[1]))
+        #self.onlineEstList.append((initPoint[0], initPoint[1]))
         # TODO: give the initial point firstly
-        #self.onlineEstList.append((49.8, 1.95))
+        self.onlineEstList.append((49.8, 1.95))
         if len(candidateList) > 1:
             self.matchStatus = "mult"
         elif len(candidateList) == 1:
             self.matchStatus = "covg"
+
         # Calculate the real directions for each step
         dirList = [r + startingDirection for r in rotaValueList]
         # Secondly, update locations for each step
         # 2.1
         stepDeviation = para[13] # step standard deviation
         currentTurnNum = 0
-        stepNumAfterTurnsEnd = -1
         currentGyroIndex = 0
         stepNumInSeg = 0
         for i in range(len(stIndexList)):
@@ -169,16 +191,14 @@ class SegmentHMMMatcher(object):
             aeTime = edTimeList[i]
             # If this is the end of some activity,
             # then, update segment candidate,
-            if i == endTurnAtStepIndexList[currentTurnNum]:
+            if i == endTurnAtStepIndexList[currentTurnNum] and False:
                 self.viterbiList.append(candidateList)
-                # Now, we have a new segment candidate list
-                candidateList = self.digitalMap.nextSegment(turnTypeList[currentTurnNum], candidateList)
-                print ("Can list length is %d and %d" % (len(candidateList), turnTypeList[currentTurnNum]))
+                # Now, we should have a new segment candidate list
+                candidateList = self.nextCandidate(turnTypeList[currentTurnNum], candidateList)
                 # Check and update the new candidates
                 j = turnAtStepIndexList[currentTurnNum]
                 stepNumInSeg = i - j # Have walked i-j steps after turning
                 candidateList = self.checkSegment(stepLength, stepNumInSeg, stepDeviation, candidateList)
-                print ("Candit list length is %d" % len(candidateList))
                 # update the matching status
                 if (len(candidateList) == 1):
                     self.matchStatus = "covg"
@@ -207,8 +227,8 @@ class SegmentHMMMatcher(object):
                     turnPoints = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
                     newHeading = meanAngle([self.digitalMap.getHeadingDirection(candidate[4][-1], (candidate[2], candidate[3]))
                                             for candidate in candidateList], normalize=True)
-                    print(turnPoints)
-                    print(newHeading)
+                    # print(turnPoints)
+                    # print(newHeading)
                     xLoc = float(turnPoints[0]) + stepNumInSeg * stepLength * math.sin(newHeading)
                     yLoc = float(turnPoints[1]) + stepNumInSeg * stepLength * math.cos(newHeading)
                     self.onlineEstList.append((xLoc, yLoc))

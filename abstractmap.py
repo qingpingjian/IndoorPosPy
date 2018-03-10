@@ -129,12 +129,13 @@ import sys
 from anglefunc import angleNormalize, isHeadingMatch
 
 class DigitalMap(object):
-    def __init__(self, mapGraph=building1305):
+    def __init__(self, mapGraph=building1305, logFlag=True):
         self.mapGraph = mapGraph
         self.nodesDict = mapGraph.get("nodes")
         self.edgesArray = mapGraph.get("edges")
-        self.initProb = -1.0 # math.log(1.0/math.e)
-        self.startStageThres = 1.5 # The walking distance is too short, so give a big prob
+        self.logFlag = logFlag
+        self.initProb = -4.5 if logFlag else math.exp(-4.5)  # -4.5 = -1.0*(3delta)^2 / (2delta^2) about 0.0111
+        self.minProb = -15.0 if logFlag else math.exp(-15)  # 3.059023205018258e-07
         return
 
     def isRelated(self, onePoint, otherPoint):
@@ -182,9 +183,10 @@ class DigitalMap(object):
 
     def extractSegmentByDir(self, walkingDir=0.0):
         """
-        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLastTime, probCurrent, pLastSegment]
-        :param walkingDir:
-        :return:
+        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLastTime, probCurrent, pLastSegment, extendStatus]
+        :param walkingDir: base direction to select segments candidate
+        :return: segments candidate, the pLastProb is set to minProb firstly,
+        and the extend status is set to zero, (0, 1, ..., possible counter num in a straight corridor)
         """
         normalWalkDir = angleNormalize(walkingDir)
         candidateList = []
@@ -193,50 +195,52 @@ class DigitalMap(object):
             secondAccessDir = attr[5]  # The accessible direction of the second endpoint
             if isHeadingMatch(normalWalkDir, firstAccessDir):
                 # The second point is starting point and the first point is the next point
-                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, -30.0])
+                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, self.minProb, 0])
             elif isHeadingMatch(normalWalkDir, secondAccessDir):
-                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, -30.0])
+                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, self.minProb, 0])
         return candidateList
 
-    def emissionProb(self, stepLength, stepNum, stepStd, segIDArray, doLogOper=True):
+    def emissionProb(self, stepLength, stepNum, stepStd, segIDArray):
         travelDist = stepLength * stepNum
         distStd = stepStd * stepNum
         segLength = self.getSegmentLength(segIDArray)
-        # Both to multipled by math.sqrt(2.0 * math.pi) * distStd
-        probValue = 1.0 / math.e
-        if self.startStageThres * travelDist <= segLength: # a half of the length
-            probValue = 1.0 / math.e
-        else:
-            probValue = np.exp((((travelDist - segLength)**2) / ( 2 * distStd**2))*(-1.0))
-        if doLogOper:
-            probValue = math.log(probValue)
+        # TODO: the emission probability
+        probValue = self.initProb
+        if travelDist + 3 * distStd > segLength:
+            probValue = math.exp((((travelDist - segLength) ** 2) / (2 * distStd ** 2)) * (-1.0))
+            if self.logFlag:
+                probValue = math.log(probValue)
         return probValue
 
-    def nextSegment(self, turnType, candidateList):
-        print(candidateList)
-        # Now we meet a turn, then we should calcualte the most prob. segments based on turn tpyes
-        nextCandidateList = []
-        for candidate in candidateList:
-            lastSegId = candidate[4][-1]
-            originTargetPoint = (candidate[2], candidate[3])
-            for edge in self.edgesArray:
-                if edge[0] != lastSegId or edge[2] != turnType:
-                    continue
-                if turnType == 3 or turnType == 4:
-                    endPoint = self.getAnotherPoint(edge[1], originTargetPoint)
-                    nextCandidateList.append([originTargetPoint[0], originTargetPoint[1], endPoint[0], endPoint[1],
-                                              [edge[1]], self.initProb, self.initProb, candidate[6]])
+    def nextCandidateByActivity(self, lastSeg, turnType, overPoint, currentProb):
+        nextCandidate = None
+        for edge in self.edgesArray:
+            if edge[0] != lastSeg or edge[2] != turnType:
+                continue
+            if turnType == 3 or turnType == 4:  # turn around
+                endPoint = self.getAnotherPoint(edge[1], overPoint)
+                nextCandidate = [overPoint[0], overPoint[1], endPoint[0], endPoint[1], [edge[1]], self.initProb, self.initProb, currentProb, 0]
+                break
+            elif len(edge) == 5 and (turnType == 1 or turnType == 2): # left or right turn
+                passedPoint = (edge[3], edge[4])
+                if self.isRelated(overPoint, passedPoint):
+                    endPoint = self.getAnotherPoint(edge[1], passedPoint)
+                    nextCandidate = [passedPoint[0], passedPoint[1], endPoint[0], endPoint[1], [edge[1]], self.initProb, self.initProb, currentProb, 0]
                     break
-                elif turnType == 1 or turnType == 2:
-                    passedPoint = (edge[3], edge[4])
-                    if self.isRelated(originTargetPoint, passedPoint):
-                        endPoint = self.getAnotherPoint(edge[1], passedPoint)
-                        nextCandidateList.append([passedPoint[0], passedPoint[1], endPoint[0], endPoint[1],
-                                                  [edge[1]], self.initProb, self.initProb, candidate[6]])
-                        break
-        print ("Length of next is %d" % len(nextCandidateList))
-        print(nextCandidateList)
-        return nextCandidateList
+        return nextCandidate
 
 if __name__ == "__main__":
+    # Emission Probability
+    stepLength = 0.74
+    stepStd = 0.1
+    testMap = DigitalMap(logFlag=True)
+    for segID, attr in testMap.nodesDict.iteritems():
+        segLength = testMap.getSegmentLength([segID])
+        probList = []
+        for n in range(1, 40):
+            probList.append(testMap.emissionProb(stepLength, n, stepStd, [segID]))
+        # print segID,
+        # print(probList)
+        if probList[-1] <= testMap.minProb:
+            print("Try to extend %s due to the current prob. %.5f" % (segID, probList[-1]))
     print("Done.")
