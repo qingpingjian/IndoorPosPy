@@ -9,6 +9,7 @@ Created on 2018/3/8 11:04
 """
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
 
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
@@ -19,9 +20,14 @@ from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
 
 class SegmentHMMMatcher(object):
-    def __init__(self, personID="pete"):
+    def __init__(self, personID="pete", logFlag=False):
         self.personID = personID
         self.matchStatus = "init" # "init", "mult", "covg"
+        self.digitalMap = None
+        self.radioMap = None
+        self.viterbiList = None
+        self.matchedSegmentSeq = None
+        self.logFlag = logFlag
         return
 
     def updateDigitalMap(self, indoorMap):
@@ -75,7 +81,6 @@ class SegmentHMMMatcher(object):
         # There is only one candidate left
         newCandidates.extend(candidateList)
         if len(newCandidates) == 1:
-            print("The online viterbi algorithm should be convergence")
             return newCandidates
         filteredCandidateList = []
         for candidate in newCandidates:
@@ -203,6 +208,8 @@ class SegmentHMMMatcher(object):
                 # update the matching status
                 if (len(candidateList) == 1):
                     self.matchStatus = "covg"
+                else:
+                    self.matchStatus = "mult"
                 rotStartIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
                 currentGyroIndex = rotStartIndex - 1
                 rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
@@ -251,6 +258,32 @@ class SegmentHMMMatcher(object):
                 yLoc = lastLoc[1] + stepLength * math.cos(direction)
                 self.onlineEstList.append((xLoc, yLoc))
         self.viterbiList.append(candidateList)
+        self.getSegmentSequence()
+        return
+
+    def getSegmentSequence(self):
+        self.matchedSegmentSeq = None
+        if self.viterbiList == None or self.matchStatus != "covg":
+            return
+        self.matchedSegmentSeq = []
+        self.matchedSegmentSeq.append(self.viterbiList[-1][0][4])
+        currentStart = (self.viterbiList[-1][0][0], self.viterbiList[-1][0][1])
+        lastProb = self.viterbiList[-1][0][7]
+        for cIndex in range(len(self.viterbiList) - 2, -1, -1):
+            if self.logFlag and len(self.matchedSegmentSeq) + cIndex != len(self.viterbiList) - 1:
+                print("Donot find the matched segments, there must be something wrong happened: message %d" % (cIndex))
+                break
+            candidateList = self.viterbiList[cIndex]
+            for candidate in candidateList:
+                endPoint = (candidate[2], candidate[3])
+                candidateProb = candidate[6]
+                if self.digitalMap.isRelated(currentStart, endPoint) and math.fabs(lastProb - candidateProb) <= sys.float_info.epsilon:
+                    self.matchedSegmentSeq.append(candidate[4])
+                    currentStart = (candidate[0], candidate[1])
+                    lastProb = candidate[7]
+                    break
+        if self.logFlag:
+            print(self.matchedSegmentSeq)
         return
 
 
@@ -264,7 +297,7 @@ if __name__ == "__main__":
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
     gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
 
-    firstMatcher = SegmentHMMMatcher()
+    firstMatcher = SegmentHMMMatcher(logFlag=True)
     myDigitalMap = DigitalMap()
     firstMatcher.updateDigitalMap(myDigitalMap)
 
