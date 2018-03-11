@@ -93,9 +93,18 @@ class SegmentHMMMatcher(object):
         # Now we meet a turn, then we should calcualte the most prob. segments based on turn types
         nextCandidateList = []
         for candidate in candidateList:
-            nextCandidate = self.digitalMap.nextCandidateByActivity(candidate[4][-1], turnType, (candidate[2], candidate[3]), candidate[7])
+            nextCandidate = self.digitalMap.nextCandidateByActivity(candidate[4][-1], turnType, (candidate[2], candidate[3]), candidate[6])
             if nextCandidate != None:
-                nextCandidateList.append(nextCandidate)
+                # TODO: get candidate by activity type, and we select the most probability segment and exclude others, is it right?
+                hasDuplicate = False
+                for newCandidate in nextCandidateList:
+                    # different candidates chose the same next candidate, then we determine the most prob.
+                    if newCandidate[4][0] == nextCandidate[4][0]:
+                        hasDuplicate = True
+                        newCandidate[7] = nextCandidate[7] if newCandidate[7] < nextCandidate[7] else newCandidate[7]
+                        break
+                if not hasDuplicate:
+                    nextCandidateList.append(nextCandidate)
         # print("Num of next candidate is %d" % len(nextCandidateList))
         print(nextCandidateList)
         return nextCandidateList
@@ -168,7 +177,7 @@ class SegmentHMMMatcher(object):
         self.onlineEstList = []
         self.viterbiList = []
 
-        #Map Matching based on steps and turns
+        # Map Matching based on steps and turns
         # First, initial candidates from initial direction
         candidateList = self.digitalMap.extractSegmentByDir(startingDirection)
         print("The initial number of segment candidate is %d" % (len(candidateList)))
@@ -176,7 +185,7 @@ class SegmentHMMMatcher(object):
         initPoint = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
         print("The initial point estimation is (%.3f, %.3f)" % (initPoint[0], initPoint[1]))
         self.onlineEstList.append((initPoint[0], initPoint[1]))
-        # TODO: give the initial point firstly
+        # TODO: give the initial point firstly, PDR should commit the previous line and uncommit the next line
         # self.onlineEstList.append((49.8, 1.95))
         if len(candidateList) > 1:
             self.matchStatus = "mult"
@@ -282,6 +291,7 @@ class SegmentHMMMatcher(object):
                     currentStart = (candidate[0], candidate[1])
                     lastProb = candidate[7]
                     break
+        self.matchedSegmentSeq.reverse()
         if self.logFlag:
             print(self.matchedSegmentSeq)
         return
