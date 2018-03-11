@@ -121,19 +121,6 @@ class WifiFingerprintPDR(PDR):
             estiLocList.append((xLoc, yLoc, fusionLocx, fusionLocy))
         return estiLocList, wifiEstList
 
-    def bindWifiFP(self, acceTimeList, acceValueList, gyroTimeList, gyroValueList,
-                     wifiTimeList, wifiScanList):
-        """
-
-        :param acceTimeList: acceleration timestamp list
-        :param acceValueList: data list of accelerometer
-        :param gyroTimeList: gyroscope timestamp list
-        :param gyroValueList: data list of gyroscope
-        :param wifiTimeList: timestamp list of wifi scan value
-        :param wifiScanList: wifi scan value list
-        :return:[(xloc, yloc, wifi)]
-        """
-        pass
 
 if __name__ == "__main__":
     sensorFilePath = ("./Examples/ExtendedKF/20180118102918_acce.csv",

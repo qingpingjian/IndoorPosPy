@@ -27,6 +27,8 @@ class SegmentHMMMatcher(object):
         self.radioMap = None
         self.viterbiList = None
         self.matchedSegmentSeq = None
+        # bind wifi
+
         self.logFlag = logFlag
         return
 
@@ -280,7 +282,7 @@ class SegmentHMMMatcher(object):
         lastProb = self.viterbiList[-1][0][7]
         for cIndex in range(len(self.viterbiList) - 2, -1, -1):
             if self.logFlag and len(self.matchedSegmentSeq) + cIndex != len(self.viterbiList) - 1:
-                print("Donot find the matched segments, there must be something wrong happened: message %d" % (cIndex))
+                print("Don't find the matched segments, there must be something wrong happened: message %d" % (cIndex))
                 break
             candidateList = self.viterbiList[cIndex]
             for candidate in candidateList:
@@ -295,6 +297,12 @@ class SegmentHMMMatcher(object):
         if self.logFlag:
             print(self.matchedSegmentSeq)
         return
+
+    def bindWiFi(self, wifiTimeList, wifiScanList):
+        if self.matchedSegmentSeq == None:
+            return
+
+        pass
 
 
 if __name__ == "__main__":

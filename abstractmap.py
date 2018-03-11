@@ -229,6 +229,17 @@ class DigitalMap(object):
                     break
         return nextCandidate
 
+    def getSegmentSeparatePoint(self, firstSeg, secondSeg):
+        # TODO: we do not need to find separete points between the same segment
+        if firstSeg == secondSeg:
+            return None
+        separatePoint = None
+        for edge in self.edgesArray:
+            if len(edge) > 3 and edge[0] == firstSeg and edge[1] == secondSeg:
+                separatePoint = (edge[3], edge[4])
+                break
+        return separatePoint
+
 if __name__ == "__main__":
     # Emission Probability
     stepLength = 0.74
