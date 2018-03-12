@@ -303,6 +303,28 @@ def turnAlignStep(stepEndTimeList, turnStartTimeList, turnTimeList, turnEndTimeL
     # print(endTurnAtStepIndexList)
     return turnAtStepIndexList, startTurnAtStepIndexList, endTurnAtStepIndexList
 
+def genLocation(startPoint, endPoint, num, logFlag=False):
+    locList = []
+    locList.append(startPoint)
+    if math.fabs(startPoint[0] - endPoint[0]) < 0.1:
+        stepLength = (endPoint[1] - startPoint[1]) / num
+        if logFlag:
+            print("Step Length: %.2f" % (stepLength))
+        for i in range(1, num + 1):
+            x = startPoint[0]
+            y = startPoint[1] + stepLength * i
+            locList.append((x, y))
+    elif math.fabs(startPoint[1] - endPoint[1]) < 0.1:
+        stepLength = (endPoint[0] - startPoint[0]) / num
+        if logFlag:
+            print("Step Length: %.2f" % (stepLength))
+        for i in range(1, num + 1):
+            x = startPoint[0] + stepLength * i
+            y = startPoint[1]
+            locList.append((x, y))
+    return locList
+
+
 if __name__ == "__main__":
     paras = modelParameterDict.get("pete")
     print(paras[13])

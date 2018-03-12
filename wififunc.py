@@ -31,6 +31,11 @@ def wifiStrAnalysis(wifiStrList):
     return wifiDict
 
 
+def wifiDict2Str(wifiDict):
+    wifiStrList = ["%s|%.1f" % (mac, float(np.mean(rssList))) for mac, rssList in wifiDict.iteritems()]
+    return ";".join(wifiStrList)
+
+
 def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     """
     calculate the euler distance between test data and train data, while test data is baseline
@@ -75,4 +80,6 @@ if __name__ == "__main__":
     wifiInfoSec = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-57"
     wifiInfoThd = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-53"
     print(eulerDistanceA(wifiStrAnalysis([wifiInfoFir, wifiInfoThd]), wifiStrAnalysis([wifiInfoSec])))
+    wifiStrList = [wifiInfoFir, wifiInfoSec, wifiInfoThd]
+    print(wifiDict2Str(wifiStrAnalysis(wifiStrList)))
     print("Done.")

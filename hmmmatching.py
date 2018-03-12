@@ -16,6 +16,7 @@ from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 from comutil import *
 from abstractmap import *
 from dataloader import loadAcceData, loadGyroData, loadMovingWifi
+from wififunc import wifiDict2Str
 from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
 
@@ -158,9 +159,6 @@ class SegmentHMMMatcher(object):
         for i in range(len(turnIndexList)):
             allTurnIndexList.extend([rtDegreeIndexList[i*2], turnIndexList[i], rtDegreeIndexList[i*2+1]])
         self.allTurnIndexList = allTurnIndexList
-        print(turnIndexList)
-        print(rtDegreeIndexList)
-        print(self.allTurnIndexList)
 
         # Turn recognize and Step and Turn Alignment by time
         turnAtStepIndexList = []
@@ -327,12 +325,31 @@ class SegmentHMMMatcher(object):
         turnEndTimeList = [gyroTimeList[i] for i in turnEndIndexList]
 
         tsIndexList, stsIndexList, etsIndexList = turnAlignStep(endTimeList, turnStartTimeList, turnTimeList, turnEndTimeList)
-
+        currentWifiIndex = 0
+        wifiBoundList = []
         for i in range(0, len(self.turnTypeList)-1):
             if self.turnTypeList[i] < 3 and self.turnTypeList[i+1] < 3:
-                print("%d turn and %d next turn is satified" % (i, i+1))
-
-        return
+                print("%d turn and %d next turn is satisfied" % (i, i+1))
+                # Get the transition point
+                segmentIDArray = self.matchedSegmentSeq[i+1]
+                firstPoint = self.digitalMap.getSegmentSeparatePoint(self.matchedSegmentSeq[i][-1], self.matchedSegmentSeq[i+1][0])
+                secondPoint = self.digitalMap.getSegmentSeparatePoint(self.matchedSegmentSeq[i+1][-1], self.matchedSegmentSeq[i+2][0])
+                firstStepIndex = tsIndexList[i]
+                secondStepIndex = tsIndexList[i+1]
+                offlineLocList = genLocation(firstPoint, secondPoint, secondStepIndex-firstStepIndex)
+                for stepIndex in range(firstStepIndex, secondStepIndex+1):
+                    startWifiTime = peakTimeList[stepIndex]
+                    endWifiTime = peakTimeList[stepIndex + 1]
+                    currentWifiIndex, currentWifiDict = wifiExtract(startWifiTime, endWifiTime, wifiTimeList, wifiScanList,
+                                                                    currentWifiIndex)
+                    if currentWifiDict != None:
+                        offlineLoc = offlineLocList[stepIndex-firstStepIndex]
+                        segBound = self.digitalMap.selectSegment(offlineLoc, segmentIDArray)
+                        wifiBoundList.append((segBound,
+                                              round(offlineLoc[0] * 1000) / 1000,
+                                              round(offlineLoc[1] * 1000) / 1000,
+                                              wifiDict2Str(currentWifiDict)))
+        return wifiBoundList
 
 
 if __name__ == "__main__":
@@ -354,7 +371,12 @@ if __name__ == "__main__":
     firstMatcher.onlineViterbi(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
 
     # Bin wifi fingerprint
-    firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
+    wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
+    wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
+    wifiBoundFilePath = "%s_bind.csv" % sensorFilePath[2][0:-4]
+    wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)
+    print(wifiBoundFilePath)
+
 
     # Save the estimate locations
     locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.onlineEstList]

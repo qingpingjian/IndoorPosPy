@@ -240,6 +240,27 @@ class DigitalMap(object):
                 break
         return separatePoint
 
+    def selectSegment(self, locPoint, segIDArray):
+        # Direction judgement
+        targetSeg = segIDArray[0]
+        attr = self.nodesDict.get(targetSeg)
+        if math.fabs(attr[0] - attr[3]) < 0.1: # Have the same x coordinate
+            yLoc = locPoint[1]
+            for segID in segIDArray:
+                segAttr = self.nodesDict.get(segID)
+                if math.fabs(segAttr[1]-yLoc) + math.fabs(segAttr[4]-yLoc) < math.fabs(segAttr[1] - segAttr[4]) + 0.1:
+                    targetSeg = segID
+                    break
+        else:
+            xLoc = locPoint[0]
+            for segID in segIDArray:
+                segAttr = self.nodesDict.get(segID)
+                if math.fabs(segAttr[0]-xLoc) + math.fabs(segAttr[3]-xLoc) < math.fabs(segAttr[0] - segAttr[3]) + 0.1:
+                    targetSeg = segID
+                    break
+        return targetSeg
+
+
 if __name__ == "__main__":
     # Emission Probability
     stepLength = 0.74
@@ -254,4 +275,8 @@ if __name__ == "__main__":
         # print(probList)
         if probList[-1] <= testMap.minProb:
             print("Try to extend %s due to the current prob. %.5f" % (segID, probList[-1]))
+    # testing selectSegment
+    locPoint = (48.20655737704918, 10.7)
+    segArray = ["seg20", "seg19", "seg18", "seg17"]
+    print(testMap.selectSegment(locPoint, segArray))
     print("Done.")
