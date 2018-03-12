@@ -240,7 +240,7 @@ class SegmentHMMMatcher(object):
                 # The direction and starting point updation
                 if self.matchStatus == "covg":  # loccation estimation and direction
                     # update heading direction
-                    headingBasedSeg =self.digitalMap.getHeadingDirection(candidateList[0][4][-1], (candidateList[0][2], candidateList[0][3]))
+                    headingBasedSeg =self.digitalMap.getDirection(candidateList[0][4][-1], (candidateList[0][2], candidateList[0][3]))
                     dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingBasedSeg) for dir in dirList]
                     direction = dirList[rotEndIndex]  # This direction should equal to headingBasedSeg
                     if (turnTypeList[currentTurnNum] > 2):  # Turn around activity can not get the turn points, then we used the pdr one
@@ -257,7 +257,7 @@ class SegmentHMMMatcher(object):
                     if self.logFlag:
                         print("The number candidate now is %d" % len(candidateList))
                     turnPoints = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
-                    newHeading = meanAngle([self.digitalMap.getHeadingDirection(candidate[4][-1], (candidate[2], candidate[3]))
+                    newHeading = meanAngle([self.digitalMap.getDirection(candidate[4][-1], (candidate[2], candidate[3]))
                                             for candidate in candidateList], normalize=True)
                     # print(turnPoints)
                     # print(newHeading)
@@ -311,7 +311,62 @@ class SegmentHMMMatcher(object):
             print(self.matchedSegmentSeq)
         return
 
+    def backwardEstimate(self, turnPoint, turnStepIndex, turnStartStepIndex,
+                         dirList, endDirection):
 
+        pass
+
+    def offlineEstimate(self, acceTimeList, gyroTimeList, gyroValueList, startingDirection=0.0):
+        rotaValueList = rotationAngle(gyroTimeList, gyroValueList, normalize=False)
+        # Calculate the real directions for each step
+        dirList = [r + startingDirection for r in rotaValueList]
+
+        # 1) turn align step index
+        startIndexList = self.allStepIndexList[0::3]
+        startTimeList = [acceTimeList[i] for i in startIndexList]
+        endIndexList = self.allStepIndexList[2::3]
+        endTimeList = [acceTimeList[i] for i in endIndexList]
+
+        turnStartIndexList = self.allTurnIndexList[0::3]
+        turnStartTimeList = [gyroTimeList[i] for i in turnStartIndexList]
+        turnIndexList = self.allTurnIndexList[1::3]
+        turnTimeList = [gyroTimeList[i] for i in turnIndexList]
+        turnEndIndexList = self.allTurnIndexList[2::3]
+        turnEndTimeList = [gyroTimeList[i] for i in turnEndIndexList]
+
+        tsIndexList, stsIndexList, etsIndexList = turnAlignStep(endTimeList,
+                                                                turnStartTimeList,
+                                                                turnTimeList,
+                                                                turnEndTimeList)
+        offlineEstList = []
+        startStep = 0
+        currentGyroIndex = 0
+        rotLastEndIndex = 0
+        for i in range(0, len(self.turnTypeList)):
+            # Backward algorithm
+            turnType = self.turnTypeList[i]
+            if turnType < 3: # Not turn around
+                backEstList = []
+                frontPoint = self.digitalMap.getSegmentSeparatePoint(self.matchedSegmentSeq[i][-1], self.matchedSegmentSeq[i+1][0])
+                endDirection = self.digitalMap.getDirection(self.matchedSegmentSeq[i][-1], frontPoint, headingFlag=True)
+                backEstList.append(frontPoint)
+                for backCount in range(1, tsIndexList[i]-stsIndexList[i] + 1):
+                    preX = backEstList[-1][0] - self.stepLength * math.sin(endDirection)
+                    preY = backEstList[-1][1] - self.stepLength * math.cos(endDirection)
+                    backEstList.append((preX, preY))
+                print endDirection
+                print tsIndexList[i],stsIndexList[i]
+                print backEstList
+                # aeTime = endTimeList[stsIndexList[i]]
+                # rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
+                # currentGyroIndex = rotEndIndex - 1
+                # dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingBasedSeg) for dir in dirList]
+                pass
+            else:
+                pass
+            if i == 0:
+                break
+        pass
 
     def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
         if self.matchedSegmentSeq == None:
@@ -333,7 +388,8 @@ class SegmentHMMMatcher(object):
         wifiBoundList = []
         for i in range(0, len(self.turnTypeList)-1):
             if self.turnTypeList[i] < 3 and self.turnTypeList[i+1] < 3:
-                print("%d turn and %d next turn is satisfied" % (i, i+1))
+                if self.logFlag:
+                    print("%d turn and %d next turn is satisfied" % (i, i+1))
                 # Get the transition point
                 segmentIDArray = self.matchedSegmentSeq[i+1]
                 firstPoint = self.digitalMap.getSegmentSeparatePoint(self.matchedSegmentSeq[i][-1], self.matchedSegmentSeq[i+1][0])
@@ -362,6 +418,8 @@ if __name__ == "__main__":
                       "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_wifi.csv")
     locationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_route.csv"
     estimationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_estimate_aifi_online.csv"
+    offlineEstFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_estimate_aifi_offline.csv"
+
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
     gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
@@ -372,15 +430,20 @@ if __name__ == "__main__":
     firstMatcher.updateDigitalMap(myDigitalMap)
 
     initDirection = 0.0
-    firstMatcher.onlineViterbi(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
+    firstMatcher.onlineViterbi(acceTimeList, acceValueList,
+                               gyroTimeList, gyroValueList,
+                               startingDirection=initDirection)
 
-    # Bin wifi fingerprint
+    # Offline aifi estimate
+    firstMatcher.offlineEstimate(acceTimeList,
+                                 gyroTimeList, gyroValueList,
+                                 startingDirection=initDirection)
+
+    # Bind wifi fingerprint
     wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
     wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
     wifiBoundFilePath = "%s_bind.csv" % sensorFilePath[2][0:-4]
     wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)
-    print(wifiBoundFilePath)
-
 
     # Save the estimate locations
     locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.onlineEstList]

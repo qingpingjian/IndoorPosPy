@@ -159,10 +159,23 @@ class DigitalMap(object):
         secondPoint = (segAttr[3], segAttr[4])
         return secondPoint if self.isSamePoint(onePoint, firstPoint) else firstPoint
 
-    def getHeadingDirection(self, segID, frontPoint):
+    def getDirection(self, segID, referencePoint, headingFlag=True):
+        """
+        Get the heading direction, if headingFlag is True, the reference Point is in the front
+        or it is in the back
+        :param segID: segment identifiy, note that the user must be walking on the segment now
+        :param referencePoint: the heading front point or the coming back point
+        :param headingFlag: a flag value to indicate that the reference point location
+        :return: heading direction
+        """
         segAttr = self.nodesDict.get(segID)
         firstPoint = (segAttr[0], segAttr[1])
-        return segAttr[2] if self.isSamePoint(frontPoint, firstPoint) else segAttr[5]
+        heading = segAttr[2]
+        if headingFlag: # Point is in the front, so the coming heading of point is the heading
+            heading = segAttr[2] if self.isSamePoint(referencePoint, firstPoint) else segAttr[5]
+        else:
+            heading = segAttr[5] if self.isSamePoint(referencePoint, firstPoint) else segAttr[2]
+        return heading
 
     def extendSegment(self, segID, endPoint):
         for edge in self.edgesArray:
@@ -232,6 +245,7 @@ class DigitalMap(object):
     def getSegmentSeparatePoint(self, firstSeg, secondSeg):
         # TODO: we do not need to find separete points between the same segment
         if firstSeg == secondSeg:
+            print("I have received two same segments to separate, what's happeded ?")
             return None
         separatePoint = None
         for edge in self.edgesArray:
