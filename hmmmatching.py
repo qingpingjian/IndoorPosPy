@@ -29,7 +29,9 @@ class SegmentHMMMatcher(object):
         self.viterbiList = None
         self.matchedSegmentSeq = None
         # bind wifi
-
+        self.allStepIndexList = None
+        self.turnTypeList = None
+        self.allTurnIndexList = None
         self.logFlag = logFlag
         return
 
@@ -308,6 +310,8 @@ class SegmentHMMMatcher(object):
         if self.logFlag:
             print(self.matchedSegmentSeq)
         return
+
+
 
     def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
         if self.matchedSegmentSeq == None:
