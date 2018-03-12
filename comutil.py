@@ -260,6 +260,49 @@ def cdf(data, hasDuplicate=True):
         retValue = (np.array(distinctData), np.array(distinctCDF))
     return retValue
 
+
+def turnAlignStep(stepEndTimeList, turnStartTimeList, turnTimeList, turnEndTimeList):
+    # Step and Turn Alignment by time
+    turnAtStepIndexList = []
+    edStartIndex = 0
+    for turnTime in turnTimeList:
+        for edIndex in range(edStartIndex, len(stepEndTimeList)):
+            edt = stepEndTimeList[edIndex]
+            if edt > turnTime:
+                turnAtStepIndexList.append(edIndex)
+                edStartIndex = edIndex + 1
+                break
+    # print(turnAtStepIndexList)
+
+    startTurnAtStepIndexList = []
+    edStartIndex = 0
+    for startTime in turnStartTimeList:
+        for edIndex in range(edStartIndex, len(stepEndTimeList)):
+            edt = stepEndTimeList[edIndex]
+            if edt > startTime:
+                startTurnAtStepIndexList.append(edIndex)
+                edStartIndex = edIndex + 1
+                break
+    for i in range(len(turnAtStepIndexList)):
+        if turnAtStepIndexList[i] == startTurnAtStepIndexList[i]:
+            startTurnAtStepIndexList[i] = turnAtStepIndexList[i] - 1
+    #print(startTurnAtStepIndexList)
+
+    endTurnAtStepIndexList = []
+    edStartIndex = 0
+    for endTime in turnEndTimeList:
+        for edIndex in range(edStartIndex, len(stepEndTimeList)):
+            edt = stepEndTimeList[edIndex]
+            if edt > endTime:
+                endTurnAtStepIndexList.append(edIndex)
+                edStartIndex = edIndex + 1
+                break
+    for i in range(len(turnAtStepIndexList)):
+        if turnAtStepIndexList[i] == endTurnAtStepIndexList[i]:
+            endTurnAtStepIndexList[i] = turnAtStepIndexList[i] + 1
+    # print(endTurnAtStepIndexList)
+    return turnAtStepIndexList, startTurnAtStepIndexList, endTurnAtStepIndexList
+
 if __name__ == "__main__":
     paras = modelParameterDict.get("pete")
     print(paras[13])

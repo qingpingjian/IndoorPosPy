@@ -15,7 +15,7 @@ from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
 from comutil import *
 from abstractmap import *
-from dataloader import loadAcceData, loadGyroData
+from dataloader import loadAcceData, loadGyroData, loadMovingWifi
 from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
 
@@ -91,7 +91,8 @@ class SegmentHMMMatcher(object):
         return filteredCandidateList
 
     def nextCandidate(self, turnType, candidateList):
-        print(candidateList)
+        if self.logFlag:
+            print(candidateList)
         # Now we meet a turn, then we should calcualte the most prob. segments based on turn types
         nextCandidateList = []
         for candidate in candidateList:
@@ -108,7 +109,8 @@ class SegmentHMMMatcher(object):
                 if not hasDuplicate:
                     nextCandidateList.append(nextCandidate)
         # print("Num of next candidate is %d" % len(nextCandidateList))
-        print(nextCandidateList)
+        if self.logFlag:
+            print(nextCandidateList)
         return nextCandidateList
 
     def onlineViterbi(self, acceTimeList, acceValueList,
@@ -132,6 +134,8 @@ class SegmentHMMMatcher(object):
         stepFreq = stepNum / (edTimeList[-1] - stTimeList[0])
         stepLength = para[4] * stepFreq + para[5]
         print("Step Num is %d, Step Frequency is %.3f and Step Length is %.4f" % (stepNum, stepFreq, stepLength))
+        self.stepLength = stepLength
+        self.allStepIndexList = allIndexList
 
         # Detect Turns
         rotaValueList = rotationAngle(gyroTimeList, gyroValueList, normalize=False)
@@ -149,6 +153,14 @@ class SegmentHMMMatcher(object):
         turnTypeList = []
         for i in range(0, len(rtTimeList), 2):
             turnTypeList.append(simpleTd.turnTranslate(rtValueList[i + 1] - rtValueList[i], humanFlag=False))
+        self.turnTypeList = turnTypeList
+        allTurnIndexList = []
+        for i in range(len(turnIndexList)):
+            allTurnIndexList.extend([rtDegreeIndexList[i*2], turnIndexList[i], rtDegreeIndexList[i*2+1]])
+        self.allTurnIndexList = allTurnIndexList
+        print(turnIndexList)
+        print(rtDegreeIndexList)
+        print(self.allTurnIndexList)
 
         # Turn recognize and Step and Turn Alignment by time
         turnAtStepIndexList = []
@@ -242,7 +254,8 @@ class SegmentHMMMatcher(object):
                         yLoc = passedPoint[1] + stepNumInSeg * stepLength * math.cos(direction)
                         self.onlineEstList.append((xLoc, yLoc))
                 else: # update location estimation by new candidates starting points
-                    print("The number candidate now is %d" % len(candidateList))
+                    if self.logFlag:
+                        print("The number candidate now is %d" % len(candidateList))
                     turnPoints = np.mean([(segment[0], segment[1]) for segment in candidateList], axis=0)
                     newHeading = meanAngle([self.digitalMap.getHeadingDirection(candidate[4][-1], (candidate[2], candidate[3]))
                                             for candidate in candidateList], normalize=True)
@@ -298,11 +311,28 @@ class SegmentHMMMatcher(object):
             print(self.matchedSegmentSeq)
         return
 
-    def bindWiFi(self, wifiTimeList, wifiScanList):
+    def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
         if self.matchedSegmentSeq == None:
             return
+        peakIndexList = self.allStepIndexList[1::3]
+        peakTimeList = [acceTimeList[i] for i in peakIndexList]
+        endIndexList = self.allStepIndexList[2::3]
+        endTimeList = [acceTimeList[i] for i in endIndexList]
 
-        pass
+        turnStartIndexList = self.allTurnIndexList[0::3]
+        turnStartTimeList = [gyroTimeList[i] for i in turnStartIndexList]
+        turnIndexList = self.allTurnIndexList[1::3]
+        turnTimeList = [gyroTimeList[i] for i in turnIndexList]
+        turnEndIndexList = self.allTurnIndexList[2::3]
+        turnEndTimeList = [gyroTimeList[i] for i in turnEndIndexList]
+
+        tsIndexList, stsIndexList, etsIndexList = turnAlignStep(endTimeList, turnStartTimeList, turnTimeList, turnEndTimeList)
+
+        for i in range(0, len(self.turnTypeList)-1):
+            if self.turnTypeList[i] < 3 and self.turnTypeList[i+1] < 3:
+                print("%d turn and %d next turn is satified" % (i, i+1))
+
+        return
 
 
 if __name__ == "__main__":
@@ -314,13 +344,17 @@ if __name__ == "__main__":
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
     gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
+    wifiTimeList, wifiScanList = loadMovingWifi(sensorFilePath[2])
 
-    firstMatcher = SegmentHMMMatcher(logFlag=True)
+    firstMatcher = SegmentHMMMatcher(logFlag=False)
     myDigitalMap = DigitalMap()
     firstMatcher.updateDigitalMap(myDigitalMap)
 
     initDirection = 0.0
     firstMatcher.onlineViterbi(acceTimeList, acceValueList, gyroTimeList, gyroValueList)
+
+    # Bin wifi fingerprint
+    firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
 
     # Save the estimate locations
     locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.onlineEstList]
@@ -364,5 +398,5 @@ if __name__ == "__main__":
     pdrAxe.plot(range(len(errorList)), errorList, color="r", lw=2, label="PDR")
     plt.legend(loc=2)
     plt.grid()
-    plt.show()
+    #plt.show()
     print("Done.")
