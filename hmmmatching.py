@@ -312,7 +312,7 @@ class SegmentHMMMatcher(object):
         return
 
     def backwardEstimate(self, startStep, endStep, endPoint,
-                         gyroTimeList, backPartDirList,
+                         gyroTimeList, dirList,
                          gyroStartIndex=0):
         # 1) turn align step index
         startIndexList = self.allStepIndexList[0::3]
@@ -326,7 +326,7 @@ class SegmentHMMMatcher(object):
             aeTime = endTimeList[i]
             rotStartIndex = timeAlign(asTime, gyroTimeList, gyroStartIndex)
             rotEndIndex = timeAlign(aeTime, gyroTimeList, rotStartIndex-1)
-            direction = meanAngle(backPartDirList[rotStartIndex:rotEndIndex + 1])
+            direction = meanAngle(dirList[rotStartIndex:rotEndIndex + 1])
             lastLoc = backLocList[-1]
             xLoc = lastLoc[0] - self.stepLength * math.sin(direction)
             yLoc = lastLoc[1] - self.stepLength * math.cos(direction)
@@ -396,11 +396,10 @@ class SegmentHMMMatcher(object):
 
                 aeTime = endTimeList[stsIndexList[i]]
                 rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
-                backPartDirList = dirList[currentGyroIndex:rotEndIndex+1]
-                backPartDirList = [angleNormalize(dir -backPartDirList[-1] + endDirection) for dir in backPartDirList]
-                backGyroTimeList = gyroTimeList[currentGyroIndex:rotEndIndex+1]
+                for gyroIndex in range(currentGyroIndex, rotEndIndex+1):
+                    dirList[gyroIndex] = angleNormalize(dirList[gyroIndex] -dirList[rotEndIndex] + endDirection)
                 backEstList.extend(self.backwardEstimate(startStep, stsIndexList[i], backEstList[-1],
-                                                         backGyroTimeList, backPartDirList, currentGyroIndex))
+                                                         gyroTimeList, dirList, currentGyroIndex))
                 backEstList.reverse()
                 offlineEstList.extend(backEstList)
                 currentGyroIndex = rotEndIndex - 1
@@ -428,41 +427,70 @@ class SegmentHMMMatcher(object):
                 # Note that, forward to the 10th step end(the 11th start),
                 # then backward to the the 12th step start(the 11th end), plus 2 is to realize this algorithm
                 startStep = midStepIndex + 2
+
+                print("Step over at %d, and length of loc is %d" % (midStepIndex, len(offlineEstList)))
             else: # turn around activity
                 # turn around activity can not find the activity-related location, so we just update the direction
-                if i > 0: # turn around activity is not the first activity
-                    comingSegID = self.matchedSegmentSeq[i][-1]
-                    preComingSegID = self.matchedSegmentSeq[i][-2] if len(self.matchedSegmentSeq[i]) > 1 else self.matchedSegmentSeq[i-1][-1]
-                    backPoint = self.digitalMap.getSegmentSeparatePoint(preComingSegID, comingSegID)
-                    comingDirection = self.digitalMap.getDirection(comingSegID, backPoint, headingFlag=False)
-                    print comingDirection
-                    asTime = startTimeList[startStep]
-                    rotStartGyroIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
-                    aeTime = endTimeList[stsIndexList[i]]
-                    rotMidGyroIndex = timeAlign(aeTime, gyroTimeList, rotStartGyroIndex-1)
-                    for gyroIndex in range(rotStartGyroIndex, rotMidGyroIndex+1):
-                        dirList[gyroIndex] = angleNormalize(dirList[gyroIndex]-dirList[rotMidGyroIndex] + comingDirection)
-                    # atTime = endTimeList[tsIndexList[i]]
-                    # rotTurnGyroIndex = timeAlign(atTime, gyroTimeList, rotMidGyroIndex-1)
-                    #
-                    #
-                    # aeTime = endTimeList[tsIndexList[i]]
-                    # rotTurnGyroIndex = timeAlign(aeTime, gyroTimeList, rotStartGyroIndex-1)
-                    # for gyroIndex in range(rotStartGyroIndex, rotTurnGyroIndex+1):
-                    #     dirList[gyroIndex] = angleNormalize(comingDirection)
-                    #     dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingDirection) for dir in dirList]
+                if i > 0 and i < len(self.turnTypeList)-1: # turn around activity is not the first activity or the last one
+                    # Note that, we use forward algorithm in turn around activity,
+                    # and first location estimation is based on the estimated location,
+                    # so startStep - 1 is the real first location ready to estimate
+                    startStep -= 1
+                    # 1) before turning activity
+                    # comingSegID = self.matchedSegmentSeq[i][-1]
+                    # preComingSegID = self.matchedSegmentSeq[i][-2] if len(self.matchedSegmentSeq[i]) > 1 else self.matchedSegmentSeq[i-1][-1]
+                    # backPoint = self.digitalMap.getSegmentSeparatePoint(preComingSegID, comingSegID)
+                    # comingDirection = self.digitalMap.getDirection(comingSegID, backPoint, headingFlag=False)
+                    # if self.logFlag:
+                    #     print comingDirection
+                    # asTime = startTimeList[startStep]
+                    # rotStartGyroIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
+                    # aeTime = endTimeList[stsIndexList[i]]
+                    # rotMidGyroIndex = timeAlign(aeTime, gyroTimeList, rotStartGyroIndex-1)
+                    # for gyroIndex in range(rotStartGyroIndex, rotMidGyroIndex+1):
+                    #     dirList[gyroIndex] = angleNormalize(dirList[gyroIndex]-dirList[rotMidGyroIndex] + comingDirection)
+                    # # 2) after turning activity
+                    # goingSegID = self.matchedSegmentSeq[i+1][0]
+                    # nextGoingSegID = self.matchedSegmentSeq[i+1][1] if len(self.matchedSegmentSeq[i+1]) > 1 else self.matchedSegmentSeq[i+2][0]
+                    # frontPoint = self.digitalMap.getSegmentSeparatePoint(goingSegID, nextGoingSegID)
+                    # goingDirection = self.digitalMap.getDirection(goingSegID, frontPoint, headingFlag=True)
+                    # if self.logFlag:
+                    #     print goingDirection
+                    # aeTime = endTimeList[etsIndexList[i]]
+                    # rotStartGyroIndex = timeAlign(aeTime, gyroTimeList, rotMidGyroIndex-1)
+                    # midStepIndex = (etsIndexList[i] + stsIndexList[i + 1] + 1) / 2 if i < len(self.turnTypeList) - 1 \
+                    #     else len(endTimeList) - 1
+                    # aeTime = endTimeList[midStepIndex]
+                    # rotEndGyroIndex = timeAlign(aeTime, gyroTimeList, rotStartGyroIndex-1)
+                    # for gyroIndex in range(rotStartGyroIndex, rotEndGyroIndex+1):
+                    #     dirList[gyroIndex] = angleNormalize(dirList[gyroIndex] - dirList[rotStartGyroIndex]+goingDirection)
 
                     midStepIndex = (etsIndexList[i] + stsIndexList[i + 1] + 1) / 2 if i < len(self.turnTypeList) - 1 \
                         else len(endTimeList) - 1
+                    aeTime = endTimeList[midStepIndex]
+                    rotEndGyroIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex-1)
+
+                    # estimate the loc based forward algorithm
+                    aroundEstList = self.forwardEstimate(startStep, midStepIndex, offlineEstList[-1],
+                                                               gyroTimeList, dirList, currentGyroIndex)
+                    offlineEstList.extend(aroundEstList)
+                    print midStepIndex
+                    print len(offlineEstList)
+                    currentGyroIndex = rotEndGyroIndex - 1
+
+                    print("Step start at %d, Step over at %d, and length of loc is %d" % (startStep, midStepIndex, len(offlineEstList)))
+                    startStep = midStepIndex + 2
                 else:
-                    # turn around activity is the first activity, backward algorithm
+                    # turn around activity is the first activity or the last activity
                     # TODO: not complete
                     pass
-
-
-            if i == 0:
+            if i == 7:
                 break
-        pass
+        print("Steps: %d VS LocEst: %d" % (len(endTimeList), len(offlineEstList)))
+        for estLoc in offlineEstList:
+            print estLoc
+        self.offlineEstList = offlineEstList
+        return
 
     def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
         if self.matchedSegmentSeq == None:
