@@ -311,10 +311,50 @@ class SegmentHMMMatcher(object):
             print(self.matchedSegmentSeq)
         return
 
-    def backwardEstimate(self, turnPoint, turnStepIndex, turnStartStepIndex,
-                         dirList, endDirection):
+    def backwardEstimate(self, startStep, endStep, endPoint,
+                         gyroTimeList, backPartDirList,
+                         gyroStartIndex=0):
+        # 1) turn align step index
+        startIndexList = self.allStepIndexList[0::3]
+        startTimeList = [acceTimeList[i] for i in startIndexList]
+        endIndexList = self.allStepIndexList[2::3]
+        endTimeList = [acceTimeList[i] for i in endIndexList]
 
-        pass
+        backLocList = [endPoint]
+        for i in range(endStep, startStep-1, -1):
+            asTime = startTimeList[i]
+            aeTime = endTimeList[i]
+            rotStartIndex = timeAlign(asTime, gyroTimeList, gyroStartIndex)
+            rotEndIndex = timeAlign(aeTime, gyroTimeList, rotStartIndex-1)
+            direction = meanAngle(backPartDirList[rotStartIndex:rotEndIndex + 1])
+            lastLoc = backLocList[-1]
+            xLoc = lastLoc[0] - self.stepLength * math.sin(direction)
+            yLoc = lastLoc[1] - self.stepLength * math.cos(direction)
+            backLocList.append((xLoc, yLoc))
+        return backLocList[1:]
+
+    def forwardEstimate(self, startStep, endStep, startPoint,
+                        gyroTimeList, dirList, gyroStartIndex=0):
+        # 1) turn align step index
+        startIndexList = self.allStepIndexList[0::3]
+        startTimeList = [acceTimeList[i] for i in startIndexList]
+        endIndexList = self.allStepIndexList[2::3]
+        endTimeList = [acceTimeList[i] for i in endIndexList]
+
+        forLocList = [startPoint]
+        currentGyroIndex = gyroStartIndex
+        for i in range(startStep, endStep + 1):
+            asTime = startTimeList[i]
+            aeTime = endTimeList[i]
+            rotStartIndex = timeAlign(asTime, gyroTimeList, currentGyroIndex)
+            rotEndIndex = timeAlign(aeTime, gyroTimeList, rotStartIndex - 1)
+            currentGyroIndex = rotEndIndex - 1
+            direction = meanAngle(dirList[rotStartIndex:rotEndIndex + 1])
+            lastLoc = forLocList[-1]
+            xLoc = lastLoc[0] + self.stepLength * math.sin(direction)
+            yLoc = lastLoc[1] + self.stepLength * math.cos(direction)
+            forLocList.append((xLoc, yLoc))
+        return forLocList[1:]
 
     def offlineEstimate(self, acceTimeList, gyroTimeList, gyroValueList, startingDirection=0.0):
         rotaValueList = rotationAngle(gyroTimeList, gyroValueList, normalize=False)
@@ -341,11 +381,10 @@ class SegmentHMMMatcher(object):
         offlineEstList = []
         startStep = 0
         currentGyroIndex = 0
-        rotLastEndIndex = 0
         for i in range(0, len(self.turnTypeList)):
-            # Backward algorithm
             turnType = self.turnTypeList[i]
             if turnType < 3: # Not turn around
+                # 1) Backward algorithm, startStep - turnStep (including)
                 backEstList = []
                 frontPoint = self.digitalMap.getSegmentSeparatePoint(self.matchedSegmentSeq[i][-1], self.matchedSegmentSeq[i+1][0])
                 endDirection = self.digitalMap.getDirection(self.matchedSegmentSeq[i][-1], frontPoint, headingFlag=True)
@@ -354,16 +393,50 @@ class SegmentHMMMatcher(object):
                     preX = backEstList[-1][0] - self.stepLength * math.sin(endDirection)
                     preY = backEstList[-1][1] - self.stepLength * math.cos(endDirection)
                     backEstList.append((preX, preY))
+
                 print endDirection
                 print tsIndexList[i],stsIndexList[i]
                 print backEstList
-                # aeTime = endTimeList[stsIndexList[i]]
-                # rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
-                # currentGyroIndex = rotEndIndex - 1
-                # dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingBasedSeg) for dir in dirList]
+
+                aeTime = endTimeList[stsIndexList[i]]
+                rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
+                backPartDirList = dirList[currentGyroIndex:rotEndIndex+1]
+                backPartDirList = [angleNormalize(dir -backPartDirList[-1] + endDirection) for dir in backPartDirList]
+                backGyroTimeList = gyroTimeList[currentGyroIndex:rotEndIndex+1]
+                backEstList.extend(self.backwardEstimate(startStep, stsIndexList[i], backEstList[-1],
+                                                         backGyroTimeList, backPartDirList, currentGyroIndex))
+                backEstList.reverse()
+                offlineEstList.extend(backEstList)
+                currentGyroIndex = rotEndIndex - 1
+                print len(offlineEstList)
+                # 2) forward algorithm, turnStep (excluded)-midStep(including), so next startStep = mideStep+1
+                backPoint = frontPoint
+                forwardEstList = [backPoint]
+                headingDirection = self.digitalMap.getDirection(self.matchedSegmentSeq[i+1][0], backPoint, headingFlag=False)
+                for forCount in range(1, etsIndexList[i] - tsIndexList[i] + 1):
+                    nextX = forwardEstList[-1][0] + self.stepLength * math.sin(headingDirection)
+                    nextY = forwardEstList[-1][1] + self.stepLength * math.cos(headingDirection)
+                    forwardEstList.append((nextX, nextY))
+                print tsIndexList[i]
+                print etsIndexList[i]
+                print forwardEstList
+                aeTime = endTimeList[etsIndexList[i]]
+                rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
+                dirList = [angleNormalize(dir - dirList[rotEndIndex] + headingDirection) for dir in dirList]
+                midStepIndex = (etsIndexList[i] + stsIndexList[i+1] + 1) / 2 if i < len(self.turnTypeList) - 1 else len(endTimeList)-1
+                aeTime = endTimeList[midStepIndex]
+                rotEndIndex = timeAlign(aeTime, gyroTimeList, rotEndIndex - 1)
+                forwardEstList.extend(self.forwardEstimate(etsIndexList[i]+1, midStepIndex, forwardEstList[-1],
+                                                           gyroTimeList, dirList, currentGyroIndex))
+                offlineEstList.extend(forwardEstList[1:])
+                currentGyroIndex = rotEndIndex - 1
+                # Note that, forward to the 10th step end(the 11th start),
+                # then backward to the the 12th step start(the 11th end), plus 2 is to realize this algorithm
+                startStep = midStepIndex + 2
+            else: # turn around activity
                 pass
-            else:
-                pass
+
+
             if i == 0:
                 break
         pass
