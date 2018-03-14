@@ -40,7 +40,7 @@ if __name__ == "__main__":
     imageFilePath = "environment_0302.png"
     realLocFilePath = "20180303143913_route.csv"
     estiLocFilePath = "20180303143913_estimate_pdr.csv"
-    offlineLocFilePath = "20180303143913_estimate_aifi_offline.csv"
+    offlineLocFilePath = "20180303143913_estimate_aifi_offline_0305.csv"
     colors = ((0, 255, 0), (0, 0, 255), (255, 0, 0))
     showImage(imageFilePath, [realLocFilePath, estiLocFilePath, offlineLocFilePath], colors)
     print("Done.")
