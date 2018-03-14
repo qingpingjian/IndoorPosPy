@@ -10,6 +10,7 @@ Created on 2018/3/8 11:04
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+import time
 
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
@@ -383,8 +384,6 @@ class SegmentHMMMatcher(object):
         currentGyroIndex = 0
         for i in range(0, len(self.turnTypeList)):
             turnType = self.turnTypeList[i]
-            if i == 3:
-                print (turnType)
             if turnType < 3: # Not turn around
                 # 1) Backward algorithm, startStep - turnStep (including)
                 backEstList = []
@@ -429,8 +428,8 @@ class SegmentHMMMatcher(object):
                 # Note that, forward to the 10th step end(the 11th start),
                 # then backward to the the 12th step start(the 11th end), plus 2 is to realize this algorithm
                 startStep = midStepIndex + 2
-
-                print("Step over at %d, and length of loc is %d" % (midStepIndex, len(offlineEstList)))
+                if self.logFlag:
+                    print("Step over at %d, and length of loc is %d" % (midStepIndex, len(offlineEstList)))
             else: # turn around activity
                 # turn around activity can not find the activity-related location, so we just update the direction
                 if i > 0 and i < len(self.turnTypeList)-1: # turn around activity is not the first activity or the last one
@@ -476,11 +475,9 @@ class SegmentHMMMatcher(object):
                     aroundEstList = self.forwardEstimate(startStep, midStepIndex, offlineEstList[-1],
                                                                gyroTimeList, dirList, currentGyroIndex)
                     offlineEstList.extend(aroundEstList)
-                    print midStepIndex
-                    print len(offlineEstList)
                     currentGyroIndex = rotEndGyroIndex - 1
-
-                    print("Step start at %d, Step over at %d, and length of loc is %d" % (startStep, midStepIndex, len(offlineEstList)))
+                    if self.logFlag:
+                        print("Step start at %d, Step over at %d, and length of loc is %d" % (startStep, midStepIndex, len(offlineEstList)))
                     startStep = midStepIndex + 2
                 else:
                     # turn around activity is the first activity or the last activity
@@ -488,9 +485,8 @@ class SegmentHMMMatcher(object):
                     pass
             if i == 7:
                 break
-        print("Steps: %d VS LocEst: %d" % (len(endTimeList), len(offlineEstList)))
-        for estLoc in offlineEstList:
-            print estLoc
+        if self.logFlag:
+            print("Steps: %d VS LocEst: %d" % (len(endTimeList), len(offlineEstList)))
         self.offlineEstList = offlineEstList
         return
 
@@ -543,8 +539,6 @@ if __name__ == "__main__":
                       "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_gyro.csv",
                       "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_wifi.csv")
     locationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_route.csv"
-    estimationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_estimate_aifi_online.csv"
-    offlineEstFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_estimate_aifi_offline.csv"
 
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
@@ -564,44 +558,52 @@ if __name__ == "__main__":
     firstMatcher.offlineEstimate(acceTimeList,
                                  gyroTimeList, gyroValueList,
                                  startingDirection=initDirection)
+
     # Save the offline estimate locations
     offLocEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.offlineEstList]
     offLocEstDF = pd.DataFrame(np.array(offLocEstList), columns=["EX(m)", "EY(m)"])
+    offlineEstFilePath = "%s_estimate_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
     offLocEstDF.to_csv(offlineEstFilePath, encoding="utf-8", index=False)
 
     # Bind wifi fingerprint
     wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
     wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
-    wifiBoundFilePath = "%s_bind.csv" % sensorFilePath[2][0:-4]
+    wifiBoundFilePath = "%s_bind.csv" % (sensorFilePath[2][0:-4])
     wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)
 
     # Save the estimate locations
     locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.onlineEstList]
     locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)"])
-    locEstDF.to_csv(estimationFilePath, encoding='utf-8', index=False)
+    onlineEstFilePath = "%s_estimate_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+    locEstDF.to_csv(onlineEstFilePath, encoding='utf-8', index=False)
 
     # load real locations
     locRealDF = pd.read_csv(locationFilePath)
-
-    # Calculate the location errors
     locRealList = [(loc[0], loc[1]) for loc in locRealDF.values]
-    errorList = distError(locRealList, locEstList)
 
-    # Save the errors
-    errorList = [round(err * 1000) / 1000 for err in errorList]
-    errorFilePath = "%s_error_aifi_online.csv" % locationFilePath[0:-4]
-    errorDF = pd.DataFrame(np.array(errorList), columns=["Error(m)"])
-    errorDF.to_csv(errorFilePath, encoding='utf-8', index=False)
+    # Calculate the location errors and save them
+    offlineErrList = distError(locRealList, offLocEstList)
+    # offline errors
+    offlineErrList = [round(err * 1000) / 1000 for err in offlineErrList]
+    offlineErrFilePath = "%s_error_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+    offlineErrDF = pd.DataFrame(np.array(offlineErrList), columns=["Error(m)"])
+    offlineErrDF.to_csv(offlineErrFilePath, encoding='utf-8', index=False)
+    # online errors
+    onlineErrList = distError(locRealList, locEstList)
+    onlineErrList = [round(err * 1000) / 1000 for err in onlineErrList]
+    onlineErrFilePath = "%s_error_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+    onlineErrDF = pd.DataFrame(np.array(onlineErrList), columns=["Error(m)"])
+    onlineErrDF.to_csv(onlineErrFilePath, encoding='utf-8', index=False)
 
-    print("Average Error Distance is %.3f" % np.mean(errorList))
+    print("Offline and Online Average Error Distances: %.3f vs %.3f" % (float(np.mean(offlineErrList)), float(np.mean(onlineErrList))))
 
     # Show the errors
     pdrxMajorLocator = MultipleLocator(40)
     pdrxMajorFormatter = FormatStrFormatter("%d")
     pdrxMinorLocator = MultipleLocator(20)
-    pdryMajorLocator = MultipleLocator(1.0)
+    pdryMajorLocator = MultipleLocator(4.0)
     pdryMajorFormatter = FormatStrFormatter("%.1f")
-    pdryMinorLocator = MultipleLocator(0.5)
+    pdryMinorLocator = MultipleLocator(2.0)
 
     fig = plt.figure()
     pdrAxe = fig.add_subplot(111)
@@ -614,7 +616,7 @@ if __name__ == "__main__":
     pdrAxe.yaxis.set_minor_locator(pdryMinorLocator)
     pdrAxe.set_xlabel("$Step\ Number$")
     pdrAxe.set_ylabel("$Position\ Error(m)$")
-    pdrAxe.plot(range(len(errorList)), errorList, color="r", lw=2, label="PDR")
+    pdrAxe.plot(range(len(onlineErrList)), onlineErrList, color="r", lw=2, label="Online AiFi")
     plt.legend(loc=2)
     plt.grid()
     # plt.show()
