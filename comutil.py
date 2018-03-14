@@ -284,8 +284,8 @@ def turnAlignStep(stepEndTimeList, turnStartTimeList, turnTimeList, turnEndTimeL
                 edStartIndex = edIndex + 1
                 break
     for i in range(len(turnAtStepIndexList)):
-        if turnAtStepIndexList[i] == startTurnAtStepIndexList[i]:
-            startTurnAtStepIndexList[i] = turnAtStepIndexList[i] - 1
+        if turnAtStepIndexList[i] - 2 < startTurnAtStepIndexList[i]:
+            startTurnAtStepIndexList[i] = turnAtStepIndexList[i] - 2
     #print(startTurnAtStepIndexList)
 
     endTurnAtStepIndexList = []
@@ -298,8 +298,8 @@ def turnAlignStep(stepEndTimeList, turnStartTimeList, turnTimeList, turnEndTimeL
                 edStartIndex = edIndex + 1
                 break
     for i in range(len(turnAtStepIndexList)):
-        if turnAtStepIndexList[i] == endTurnAtStepIndexList[i]:
-            endTurnAtStepIndexList[i] = turnAtStepIndexList[i] + 1
+        if turnAtStepIndexList[i] + 2 > endTurnAtStepIndexList[i]:
+            endTurnAtStepIndexList[i] = turnAtStepIndexList[i] + 2
     # print(endTurnAtStepIndexList)
     return turnAtStepIndexList, startTurnAtStepIndexList, endTurnAtStepIndexList
 

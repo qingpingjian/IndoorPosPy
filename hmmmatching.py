@@ -383,6 +383,8 @@ class SegmentHMMMatcher(object):
         currentGyroIndex = 0
         for i in range(0, len(self.turnTypeList)):
             turnType = self.turnTypeList[i]
+            if i == 3:
+                print (turnType)
             if turnType < 3: # Not turn around
                 # 1) Backward algorithm, startStep - turnStep (including)
                 backEstList = []
@@ -562,6 +564,10 @@ if __name__ == "__main__":
     firstMatcher.offlineEstimate(acceTimeList,
                                  gyroTimeList, gyroValueList,
                                  startingDirection=initDirection)
+    # Save the offline estimate locations
+    offLocEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.offlineEstList]
+    offLocEstDF = pd.DataFrame(np.array(offLocEstList), columns=["EX(m)", "EY(m)"])
+    offLocEstDF.to_csv(offlineEstFilePath, encoding="utf-8", index=False)
 
     # Bind wifi fingerprint
     wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
@@ -611,5 +617,5 @@ if __name__ == "__main__":
     pdrAxe.plot(range(len(errorList)), errorList, color="r", lw=2, label="PDR")
     plt.legend(loc=2)
     plt.grid()
-    #plt.show()
+    # plt.show()
     print("Done.")

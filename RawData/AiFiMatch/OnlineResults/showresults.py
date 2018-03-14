@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     # hmmErrorRT1FilePath = "20180302213910_route_error_aifi_online_0305.csv"
     # hmmErrorRT2FilePath = "20180303165821_route_error_aifi_online_0305.csv"
-    # hmmErrorRT3FilePath = "20180303143913_route_error_aifi_online_0311.csv"  # coming from hmmmatching viterbi online result
+    # hmmErrorRT3FilePath = "20180303143913_route_error_aifi_online_0314.csv"  # coming from hmmmatching viterbi online result
 
     perOneDF = pd.read_csv(pdrErrorRT1FilePath)
     perOneList = perOneDF.values
