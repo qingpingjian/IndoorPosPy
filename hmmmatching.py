@@ -359,6 +359,9 @@ class SegmentHMMMatcher(object):
         return forLocList[1:]
 
     def offlineEstimate(self, acceTimeList, gyroTimeList, gyroValueList, startingDirection=0.0):
+        if self.matchedSegmentSeq == None or len(self.matchedSegmentSeq) == 0:
+            self.offlineEstList = None
+            return
         rotaValueList = rotationAngle(gyroTimeList, gyroValueList, normalize=False)
         # Calculate the real directions for each step
         dirList = [r + startingDirection for r in rotaValueList]
@@ -493,7 +496,7 @@ class SegmentHMMMatcher(object):
 
     def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
         if self.matchedSegmentSeq == None or len(self.matchedSegmentSeq) == 0:
-            return
+            return None
         peakIndexList = self.allStepIndexList[1::3]
         peakTimeList = [acceTimeList[i] for i in peakIndexList]
         endIndexList = self.allStepIndexList[2::3]
@@ -600,7 +603,7 @@ if __name__ == "__main__":
 
     # Bind wifi fingerprint
     wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
-    if saveFlags[1]:
+    if saveFlags[1] and wifiBoundList != None:
         wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
         wifiBoundFilePath = "%s_bind.csv" % (sensorFilePath[2][0:-4])
         wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)

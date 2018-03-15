@@ -68,6 +68,16 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     return math.sqrt(eulerDist)
 
 
+def jaccardDist(firstWifiDict, secondWifiDict):
+    # TODO: for rss value is very small, the AP should be excluded
+    firstMacSet = set(firstWifiDict.keys())
+    secondMacSet = set(secondWifiDict.keys())
+    unionSet = firstMacSet | secondMacSet
+    interSet = firstMacSet & secondMacSet
+    jcd = (len(unionSet) - len(interSet)) * 1.0 / len(unionSet)
+    return jcd
+
+
 def bayesProbability(baseWifiDict, compGaussianDict, wifiNum=7, wifiDefault=-100.0):
     """
     calculate the log gassian probability of test data comparing with train data
@@ -116,12 +126,33 @@ def wifiSequenceProcess(wifiSequence):
     return wifiSeqNew
 
 
+def wifiSeqJaccardDist(baseWifiSeq, walkWifiSeq, windowSize=3):
+    if len(baseWifiSeq) < 5 or len(walkWifiSeq) < 3:
+        return 1.0 * windowSize
+    jcd = 1.0 * windowSize
+    firstSeq = baseWifiSeq
+    secondSeq = walkWifiSeq
+    if len(baseWifiSeq) < len(walkWifiSeq):
+        firstSeq = walkWifiSeq
+        secondSeq = baseWifiSeq
+    # In the proper order
+    for i in range(0, len(firstSeq)-len(secondSeq)+1):
+        jcdSum = 0.0
+        for j in range(0, len(secondSeq)):
+            jcdSum += jaccardDist(secondSeq[j], firstSeq[i+j])
+        jcdSum /= len(secondSeq)
+        jcd = min(jcd, jcdSum)
+    # In the opposite order
+    # for i in range(len(firstSeq), ):
+    #     jcdSum = 0.0
+    #     for j in range(0, len(secondSeq)):
+
+
 
 if __name__ == "__main__":
     wifiInfoFir = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-30;9c:21:6a:7f:bf:7c|-52"
     wifiInfoSec = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-57"
-    wifiInfoThd = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:64|-40;9c:21:6a:7f:bf:7c|-53"
-    print(eulerDistanceA(wifiStrAnalysis([wifiInfoFir, wifiInfoThd]), wifiStrAnalysis([wifiInfoSec])))
-    wifiStrList = [wifiInfoFir, wifiInfoSec, wifiInfoThd]
-    print(wifiDict2Str(wifiStrAnalysis(wifiStrList)))
+    wifiInfoThd = "f4:cb:52:00:4e:68|-40;f4:cb:52:00:4e:65|-40;9c:21:6a:7f:bf:7c|-53"
+    print(jaccardDist(wifiStrAnalysis([wifiInfoFir]), wifiStrAnalysis([wifiInfoSec])))
+    print(jaccardDist(wifiStrAnalysis([wifiInfoFir]), wifiStrAnalysis([wifiInfoThd])))
     print("Done.")
