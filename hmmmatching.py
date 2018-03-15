@@ -535,10 +535,38 @@ class SegmentHMMMatcher(object):
 
 
 if __name__ == "__main__":
-    sensorFilePath = ("./RawData/AiFiMatch/ThirdTrajectory/20180303143913_acce.csv",
-                      "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_gyro.csv",
-                      "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_wifi.csv")
-    locationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_route.csv"
+    saveFlags = (False, True, False)    # offline results, bound wifi fingerprint, online results
+    saveFlags = (True, True, True)  # offline results, bound wifi fingerprint, online results
+    # TODO: First Trajectory of AiFiMatch
+    # The first one
+    sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302213401_acce.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302213401_gyro.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302213401_wifi.csv")
+    locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302213401_route.csv"
+    # The second one(*)
+    sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302213910_acce.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302213910_gyro.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302213910_wifi.csv")
+    locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302213910_route.csv"
+    # The third one
+    # sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302214450_acce.csv",
+    #                   "./RawData/AiFiMatch/FirstTrajectory/20180302214450_gyro.csv",
+    #                   "./RawData/AiFiMatch/FirstTrajectory/20180302214450_wifi.csv")
+    # locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302214450_route.csv"
+
+    # TODO: Second Trajectory of AiFiMatch
+    # The second one(*)
+    # sensorFilePath = ("./RawData/AiFiMatch/SecondTrajectory/20180303165821_acce.csv",
+    #                   "./RawData/AiFiMatch/SecondTrajectory/20180303165821_gyro.csv",
+    #                   "./RawData/AiFiMatch/SecondTrajectory/20180303165821_wifi.csv")
+    # locationFilePath = "./RawData/AiFiMatch/SecondTrajectory/20180303165821_route.csv"
+
+    # TODO: Third Trajectory of AiFiMatch
+    # The fourth one(*)
+    # sensorFilePath = ("./RawData/AiFiMatch/ThirdTrajectory/20180303143913_acce.csv",
+    #                   "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_gyro.csv",
+    #                   "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_wifi.csv")
+    # locationFilePath = "./RawData/AiFiMatch/ThirdTrajectory/20180303143913_route.csv"
 
     # Load sensor data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
@@ -561,39 +589,44 @@ if __name__ == "__main__":
 
     # Save the offline estimate locations
     offLocEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.offlineEstList]
-    offLocEstDF = pd.DataFrame(np.array(offLocEstList), columns=["EX(m)", "EY(m)"])
-    offlineEstFilePath = "%s_estimate_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
-    offLocEstDF.to_csv(offlineEstFilePath, encoding="utf-8", index=False)
+    if saveFlags[0]:
+        offLocEstDF = pd.DataFrame(np.array(offLocEstList), columns=["EX(m)", "EY(m)"])
+        offlineEstFilePath = "%s_estimate_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+        offLocEstDF.to_csv(offlineEstFilePath, encoding="utf-8", index=False)
 
     # Bind wifi fingerprint
     wifiBoundList = firstMatcher.bindWiFi(acceTimeList, gyroTimeList, wifiTimeList, wifiScanList)
-    wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
-    wifiBoundFilePath = "%s_bind.csv" % (sensorFilePath[2][0:-4])
-    wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)
+    if saveFlags[1]:
+        wifiBoundDF = pd.DataFrame(np.array(wifiBoundList), columns=["segid", "coordx", "coordy", "wifiinfos"])
+        wifiBoundFilePath = "%s_bind.csv" % (sensorFilePath[2][0:-4])
+        wifiBoundDF.to_csv(wifiBoundFilePath, encoding="utf-8", index=False)
 
     # Save the estimate locations
     locEstList = [(round(loc[0] * 1000) / 1000, round(loc[1] * 1000) / 1000) for loc in firstMatcher.onlineEstList]
-    locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)"])
-    onlineEstFilePath = "%s_estimate_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
-    locEstDF.to_csv(onlineEstFilePath, encoding='utf-8', index=False)
+    if saveFlags[2]:
+        locEstDF = pd.DataFrame(np.array(locEstList), columns=["EX(m)", "EY(m)"])
+        onlineEstFilePath = "%s_estimate_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+        locEstDF.to_csv(onlineEstFilePath, encoding='utf-8', index=False)
 
     # load real locations
     locRealDF = pd.read_csv(locationFilePath)
     locRealList = [(loc[0], loc[1]) for loc in locRealDF.values]
 
     # Calculate the location errors and save them
-    offlineErrList = distError(locRealList, offLocEstList)
     # offline errors
+    offlineErrList = distError(locRealList, offLocEstList)
     offlineErrList = [round(err * 1000) / 1000 for err in offlineErrList]
-    offlineErrFilePath = "%s_error_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
-    offlineErrDF = pd.DataFrame(np.array(offlineErrList), columns=["Error(m)"])
-    offlineErrDF.to_csv(offlineErrFilePath, encoding='utf-8', index=False)
+    if saveFlags[0]:
+        offlineErrFilePath = "%s_error_aifi_offline_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+        offlineErrDF = pd.DataFrame(np.array(offlineErrList), columns=["Error(m)"])
+        offlineErrDF.to_csv(offlineErrFilePath, encoding='utf-8', index=False)
     # online errors
     onlineErrList = distError(locRealList, locEstList)
     onlineErrList = [round(err * 1000) / 1000 for err in onlineErrList]
-    onlineErrFilePath = "%s_error_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
-    onlineErrDF = pd.DataFrame(np.array(onlineErrList), columns=["Error(m)"])
-    onlineErrDF.to_csv(onlineErrFilePath, encoding='utf-8', index=False)
+    if saveFlags[2]:
+        onlineErrFilePath = "%s_error_aifi_online_%s.csv" % (locationFilePath[0:-10], time.strftime("%m%d"))
+        onlineErrDF = pd.DataFrame(np.array(onlineErrList), columns=["Error(m)"])
+        onlineErrDF.to_csv(onlineErrFilePath, encoding='utf-8', index=False)
 
     print("Offline and Online Average Error Distances: %.3f vs %.3f" % (float(np.mean(offlineErrList)), float(np.mean(onlineErrList))))
 
@@ -619,5 +652,5 @@ if __name__ == "__main__":
     pdrAxe.plot(range(len(onlineErrList)), onlineErrList, color="r", lw=2, label="Online AiFi")
     plt.legend(loc=2)
     plt.grid()
-    # plt.show()
+    plt.show()
     print("Done.")
