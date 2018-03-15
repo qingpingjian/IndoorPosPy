@@ -535,8 +535,11 @@ class SegmentHMMMatcher(object):
 
 
 if __name__ == "__main__":
-    saveFlags = (False, True, False)    # offline results, bound wifi fingerprint, online results
-    saveFlags = (True, True, True)  # offline results, bound wifi fingerprint, online results
+    # Only update the radio map
+    saveFlags = (False, True, False) # offline results, bound wifi fingerprint, online results
+    # saveFlags = (True, True, True) # offline results, bound wifi fingerprint, online results
+    # Do not update the radio map
+    saveFlags = (True, False, True)  # offline results, bound wifi fingerprint, online results
     # TODO: First Trajectory of AiFiMatch
     # The first one
     sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302213401_acce.csv",
@@ -549,10 +552,10 @@ if __name__ == "__main__":
                       "./RawData/AiFiMatch/FirstTrajectory/20180302213910_wifi.csv")
     locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302213910_route.csv"
     # The third one
-    # sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302214450_acce.csv",
-    #                   "./RawData/AiFiMatch/FirstTrajectory/20180302214450_gyro.csv",
-    #                   "./RawData/AiFiMatch/FirstTrajectory/20180302214450_wifi.csv")
-    # locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302214450_route.csv"
+    sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302214450_acce.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302214450_gyro.csv",
+                      "./RawData/AiFiMatch/FirstTrajectory/20180302214450_wifi.csv")
+    locationFilePath = "./RawData/AiFiMatch/FirstTrajectory/20180302214450_route.csv"
 
     # TODO: Second Trajectory of AiFiMatch
     # The second one(*)
