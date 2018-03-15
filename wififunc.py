@@ -139,14 +139,17 @@ def wifiSeqJaccardDist(baseWifiSeq, walkWifiSeq, windowSize=3):
     for i in range(0, len(firstSeq)-len(secondSeq)+1):
         jcdSum = 0.0
         for j in range(0, len(secondSeq)):
-            jcdSum += jaccardDist(secondSeq[j], firstSeq[i+j])
+            jcdSum += jaccardDist(secondSeq[j][2], firstSeq[i+j][2])
         jcdSum /= len(secondSeq)
         jcd = min(jcd, jcdSum)
     # In the opposite order
-    # for i in range(len(firstSeq), ):
-    #     jcdSum = 0.0
-    #     for j in range(0, len(secondSeq)):
-
+    for i in range(len(firstSeq)-1, len(secondSeq)-2, -1):
+        jcdSum = 0.0
+        for j in range(0, len(secondSeq)):
+            jcdSum += jaccardDist(secondSeq[j][2], firstSeq[i-j][2])
+        jcdSum /= len(secondSeq)
+        jcd = min(jcd, jcdSum)
+    return jcd
 
 
 if __name__ == "__main__":
