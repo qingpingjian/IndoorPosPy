@@ -12,7 +12,7 @@ import numpy as np
 import os
 import pandas as pd
 
-from wififunc import wifiStrAnalysis
+from wififunc import wifiStrAnalysis, wifiSequenceProcess
 
 TIMESTAMP_BASELINE = 1490000000000
 
@@ -127,7 +127,45 @@ def loadWifiTest(testFileDir):
     return wifiTestDict
 
 
+def loadBoundWifi(filePath):
+    fingerprintDF = pd.read_csv(filePath)
+    fingerprintInfo = fingerprintDF.ix[:,["segid", "coordx", "coordy", "wifiinfos"]]
+    segWifiDict = {}
+    for fp in fingerprintInfo.values:
+        segID = fp[0]
+        locX = fp[1]
+        locY = fp[2]
+        wifiInfo = fp[3]
+        if segWifiDict.has_key(segID):
+            segWifiDict.get(segID).append((locX, locY, wifiStrAnalysis([wifiInfo])))
+        else:
+            segWifiDict[segID] = [(locX, locY, wifiStrAnalysis([wifiInfo]))]
+    return segWifiDict
+
+def loadCrowdSourcedWifi(wifiBoundDir):
+    if not os.path.isdir(wifiBoundDir):
+        return None
+    radioMapDict = {} # {segID:[(x1, y1, wifidict), (x2, y2, wifidict2)]}
+    for rt, dirs, files in os.walk(wifiBoundDir):
+        for fileName in files:
+            if fileName.endswith("bind.csv"):
+                segWifiDict = loadBoundWifi(os.path.join(wifiBoundDir, fileName))
+                for segID, fp in segWifiDict.iteritems():
+                    if radioMapDict.has_key(segID):
+                        radioMapDict.get(segID).extend(fp)
+                    else:
+                        radioMapDict[segID] = fp
+    # preprocess the bound wifi fingerprints
+    processedRadioMapDict = {}
+    for segID, fp in radioMapDict.iteritems():
+        processedRadioMapDict[segID] = wifiSequenceProcess(fp)
+    print processedRadioMapDict.keys()
+    return processedRadioMapDict
+
+
 if __name__ == "__main__":
     # wifiScanFilePath = "./RawData/RadioMap/20180104202838_wifi.csv"
     # print (loadWifiScan(wifiScanFilePath))
+    wifiBoundDir = "./RawData/AiFiMatch/SegmentFingerprint/"
+    loadCrowdSourcedWifi(wifiBoundDir)
     print("Done.")

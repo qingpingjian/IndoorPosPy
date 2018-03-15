@@ -22,7 +22,7 @@ from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
 
 class SegmentHMMMatcher(object):
-    def __init__(self, personID="pete", logFlag=False):
+    def __init__(self, personID="pete", withWifi=False, logFlag=False):
         self.personID = personID
         self.matchStatus = "init" # "init", "mult", "covg"
         self.digitalMap = None
@@ -33,6 +33,7 @@ class SegmentHMMMatcher(object):
         self.allStepIndexList = None
         self.turnTypeList = None
         self.allTurnIndexList = None
+        self.withWifi = withWifi
         self.logFlag = logFlag
         return
 
@@ -491,7 +492,7 @@ class SegmentHMMMatcher(object):
         return
 
     def bindWiFi(self, acceTimeList, gyroTimeList, wifiTimeList, wifiScanList):
-        if self.matchedSegmentSeq == None:
+        if self.matchedSegmentSeq == None or len(self.matchedSegmentSeq) == 0:
             return
         peakIndexList = self.allStepIndexList[1::3]
         peakTimeList = [acceTimeList[i] for i in peakIndexList]

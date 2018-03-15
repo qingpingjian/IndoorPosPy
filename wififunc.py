@@ -36,6 +36,19 @@ def wifiDict2Str(wifiDict):
     return ";".join(wifiStrList)
 
 
+def combineWifiDict(firstWifiDict, secondWifiDict):
+    macSet = set(firstWifiDict.keys()+secondWifiDict.keys())
+    wifiDictNew = {}
+    for mac in macSet:
+        if firstWifiDict.has_key(mac) and secondWifiDict.has_key(mac):
+            wifiDictNew[mac] = firstWifiDict.get(mac) + secondWifiDict.get(mac) # connect two list
+        elif firstWifiDict.has_key(mac):
+            wifiDictNew[mac] = firstWifiDict.get(mac)
+        else:
+            wifiDictNew[mac] = secondWifiDict.get(mac)
+    return wifiDictNew
+
+
 def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     """
     calculate the euler distance between test data and train data, while test data is baseline
@@ -73,6 +86,35 @@ def bayesProbability(baseWifiDict, compGaussianDict, wifiNum=7, wifiDefault=-100
         logGaussian += stats.norm.logpdf(baseValue, loc=meanValue, scale=stdValue)
     # math.exp(logGaussian) is too small
     return logGaussian
+
+
+def wifiSequenceProcess(wifiSequence):
+    xLocList = [wifi[0] for wifi in wifiSequence]
+    yLocList = [wifi[1] for wifi in wifiSequence]
+    xDistance = np.max(xLocList) - np.min(xLocList)
+    yDistance = np.max(yLocList) - np.min(yLocList)
+    # Sorted the locations by x coordinate
+    if xDistance > yDistance:
+        wifiSequence.sort(key=lambda wifi : wifi[0])
+    else: # Sorted the locations by y coordinate
+        wifiSequence.sort(key=lambda  wifi : wifi[1])
+    # combine two fingerprints if they are close to each other
+    seqLeng = len(wifiSequence)
+    wifiSeqNew = []
+    i = 0
+    while i < seqLeng:
+        refWifi = wifiSequence[i]
+        j = i + 1
+        while j < seqLeng:
+            secWifi = wifiSequence[j]
+            if math.sqrt((secWifi[0] - refWifi[0]) ** 2 + (secWifi[1] - refWifi[1]) ** 2) > 0.1:
+                break
+            refWifi = ((secWifi[0]+refWifi[0])/2, (secWifi[1]+refWifi[1])/2, combineWifiDict(refWifi[2], secWifi[2]))
+            j += 1
+        i = j
+        wifiSeqNew.append(refWifi)
+    return wifiSeqNew
+
 
 
 if __name__ == "__main__":
