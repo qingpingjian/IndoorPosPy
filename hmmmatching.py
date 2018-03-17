@@ -134,7 +134,10 @@ class SegmentHMMMatcher(object):
     def isConvergence(self, candidateList):
         if len(candidateList) == 1:
             return True
-        # if all candidates at a straight line, then the status is convergence
+        # if all candidates start with the same point and are at a straight line, then the status is convergence
+        segmentList = []
+        for candidate in candidateList:
+            pass
         return False
 
     def onlineViterbi(self, acceTimeList, acceValueList,
