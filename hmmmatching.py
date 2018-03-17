@@ -16,7 +16,7 @@ from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
 from comutil import *
 from abstractmap import *
-from dataloader import loadAcceData, loadGyroData, loadMovingWifi
+from dataloader import loadAcceData, loadGyroData, loadMovingWifi, loadCrowdSourcedWifi
 from wififunc import wifiDict2Str
 from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
@@ -95,6 +95,19 @@ class SegmentHMMMatcher(object):
                 filteredCandidateList.append(candidate)
         return filteredCandidateList
 
+    def wifiSeqCheck(self, currentWifiSeq, candidateList):
+        if self.logFlag:
+            print(candidateList)
+        # If no wifi, then all candidates should be ok
+        if self.radioMap == None:
+            return candidateList
+
+        newCandidates = []
+        for candidate in candidateList:
+            currentSegId = candidate[4][-1]
+            pass
+        pass
+
     def nextCandidate(self, turnType, candidateList):
         if self.logFlag:
             print(candidateList)
@@ -117,6 +130,12 @@ class SegmentHMMMatcher(object):
         if self.logFlag:
             print(nextCandidateList)
         return nextCandidateList
+
+    def isConvergence(self, candidateList):
+        if len(candidateList) == 1:
+            return True
+        # if all candidates at a straight line, then the status is convergence
+        return False
 
     def onlineViterbi(self, acceTimeList, acceValueList,
                       gyroTimeList, gyroValueList,
@@ -544,6 +563,12 @@ if __name__ == "__main__":
     # saveFlags = (True, True, True) # offline results, bound wifi fingerprint, online results
     # Do not update the radio map
     saveFlags = (True, False, True)  # offline results, bound wifi fingerprint, online results
+    saveFlags = (False, False, False) # Testing
+
+    # Load radio map organized by segment
+    wifiBoundDir = "./RawData/AiFiMatch/SegmentFingerprint/"
+    radioMapDict = loadCrowdSourcedWifi(wifiBoundDir)
+
     # TODO: First Trajectory of AiFiMatch
     # The first one
     sensorFilePath = ("./RawData/AiFiMatch/FirstTrajectory/20180302213401_acce.csv",
@@ -583,6 +608,9 @@ if __name__ == "__main__":
     firstMatcher = SegmentHMMMatcher(logFlag=False)
     myDigitalMap = DigitalMap()
     firstMatcher.updateDigitalMap(myDigitalMap)
+
+    # Update Wifi radio map
+    firstMatcher.updateRadioMap(radioMapDict)
 
     initDirection = 0.0
     firstMatcher.onlineViterbi(acceTimeList, acceValueList,
