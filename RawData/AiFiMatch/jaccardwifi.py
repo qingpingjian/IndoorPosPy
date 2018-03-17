@@ -7,6 +7,7 @@ Created on 2018/3/15 下午11:43
 @file: jaccardwifi.py
 @software: PyCharm Community Edition
 """
+import pandas as pd
 import time
 
 from comutil import *
@@ -92,7 +93,7 @@ def calculateJcdDist(acceTimeList, acceValueList,
 
 if __name__ == "__main__":
     # Save flags
-    saveFlag = False
+    saveFlag = True
     # Load radio map organized by segment
     wifiBoundDir = "./SegmentFingerprint/"
     radioMapDict = loadCrowdSourcedWifi(wifiBoundDir)
@@ -131,6 +132,7 @@ if __name__ == "__main__":
     print jcdDiffSegList
     if saveFlag:
         jcdDiffSegFilePath = "jaccard_wifi_diff_segment_%s.csv" % (time.strftime("%m%d"))
-        # onlineErrDF = pd.DataFrame(np.array(onlineErrList), columns=["Error(m)"])
-        # onlineErrDF.to_csv(onlineErrFilePath, encoding='utf-8', index=False)
+        jcdDiffSegList = [(dist[0], round(dist[1] * 1000) / 1000) for dist in jcdDiffSegList]
+        jcdDiffSegDF = pd.DataFrame(np.array(jcdDiffSegList), columns=["Count", "Dist"])
+        jcdDiffSegDF.to_csv(jcdDiffSegFilePath, encoding='utf-8', index=False)
     print("Done.")
