@@ -7,14 +7,19 @@ Created on 2018/3/15 下午11:43
 @file: jaccardwifi.py
 @software: PyCharm Community Edition
 """
+import matplotlib.pyplot as plt
+import matplotlib
 import pandas as pd
 import time
+from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
 from comutil import *
 from dataloader import loadAcceData, loadGyroData, loadMovingWifi, loadCrowdSourcedWifi
 from stepcounter import SimpleStepCounter
 from turndetector import SimpleTurnDetector
 from wififunc import wifiSeqJaccardDist
+
+matplotlib.rcParams['font.size'] = 20
 
 def calculateJcdDist(acceTimeList, acceValueList,
                      gyroTimeList, gyroValueList,
@@ -94,45 +99,143 @@ def calculateJcdDist(acceTimeList, acceValueList,
 if __name__ == "__main__":
     # Save flags
     saveFlag = True
+    # Running Control Flag, 0: Second Trajectory; 1: Third Trajectory; 2: Show Comparison
+    controlFlag = 2
     # Load radio map organized by segment
     wifiBoundDir = "./SegmentFingerprint/"
     radioMapDict = loadCrowdSourcedWifi(wifiBoundDir)
+    if controlFlag == 0: # Second Trajectory of AiFiMatch
+        # TODO: Second Trajectory of AiFiMatch
+        sensorFilePathGroup = (
+            ("./SecondTrajectory/20180303165540_acce.csv",
+            "./SecondTrajectory/20180303165540_gyro.csv",
+            "./SecondTrajectory/20180303165540_wifi.csv"),
 
-    # TODO: Second Trajectory of AiFiMatch
-    sensorFilePathGroup = (
-        ("./SecondTrajectory/20180303165540_acce.csv",
-        "./SecondTrajectory/20180303165540_gyro.csv",
-        "./SecondTrajectory/20180303165540_wifi.csv"),
+            ("./SecondTrajectory/20180303165821_acce.csv",
+            "./SecondTrajectory/20180303165821_gyro.csv",
+            "./SecondTrajectory/20180303165821_wifi.csv"),
 
-        ("./SecondTrajectory/20180303165821_acce.csv",
-        "./SecondTrajectory/20180303165821_gyro.csv",
-        "./SecondTrajectory/20180303165821_wifi.csv"),
+            ("./SecondTrajectory/20180303170055_acce.csv",
+            "./SecondTrajectory/20180303170055_gyro.csv",
+            "./SecondTrajectory/20180303170055_wifi.csv")
+            )
+        jcdDiffSegList = []
+        for sensorFilePath in sensorFilePathGroup:
+            acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
+            gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
+            wifiTimeList, wifiScanList = loadMovingWifi(sensorFilePath[2])
 
-        ("./SecondTrajectory/20180303170055_acce.csv",
-        "./SecondTrajectory/20180303170055_gyro.csv",
-        "./SecondTrajectory/20180303170055_wifi.csv")
-        )
-    jcdDiffSegList = []
-    for sensorFilePath in sensorFilePathGroup:
-        acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
-        gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
-        wifiTimeList, wifiScanList = loadMovingWifi(sensorFilePath[2])
+            # Calculate the wifi sequence distance based on Jaccard Distance definition
+            jcdDistList = calculateJcdDist(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
+                             wifiTimeList, wifiScanList, radioMapDict)
+            if len(jcdDiffSegList) == 0:
+                jcdDiffSegList.extend(jcdDistList)
+            else:
+                for i in range(len(jcdDiffSegList)):
+                    jcdDiffSegList[i] = min(jcdDistList[i], jcdDiffSegList[i]) if i < len(jcdDistList) else jcdDiffSegList[i]
 
-        # Calculate the wifi sequence distance based on Jaccard Distance definition
-        jcdDistList = calculateJcdDist(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
-                         wifiTimeList, wifiScanList, radioMapDict)
-        if len(jcdDiffSegList) == 0:
-            jcdDiffSegList.extend(jcdDistList)
-        else:
-            for i in range(len(jcdDiffSegList)):
-                jcdDiffSegList[i] = min(jcdDistList[i], jcdDiffSegList[i]) if i < len(jcdDistList) else jcdDiffSegList[i]
+            jcdDistList = [(int(dist[0]), round(dist[1] * 1000) / 1000) for dist in jcdDistList]
+            print jcdDistList
+        print jcdDiffSegList
+        # Process results
+        if saveFlag:
+            jcdDiffSegFilePath = "jaccard_wifi_diff_segment_%s.csv" % (time.strftime("%m%d"))
+            jcdDiffSegList = [(int(dist[0]), round(dist[1] * 1000) / 1000) for dist in jcdDiffSegList]
+            jcdDiffSegDF = pd.DataFrame(np.array(jcdDiffSegList), columns=["Count", "Dist"])
+            jcdDiffSegDF.to_csv(jcdDiffSegFilePath, encoding='utf-8', index=False)
+    elif controlFlag == 1:
+        # TODO: Third Trajectory of AiFiMatch
+        sensorFilePathGroup = (
+            ("./ThirdTrajectory/20180303142423_acce.csv",
+            "./ThirdTrajectory/20180303142423_gyro.csv",
+            "./ThirdTrajectory/20180303142423_wifi.csv"),
 
-        jcdDistList = [(dist[0], round(dist[1] * 1000) / 1000) for dist in jcdDistList]
-        print jcdDistList
-    print jcdDiffSegList
-    if saveFlag:
-        jcdDiffSegFilePath = "jaccard_wifi_diff_segment_%s.csv" % (time.strftime("%m%d"))
-        jcdDiffSegList = [(dist[0], round(dist[1] * 1000) / 1000) for dist in jcdDiffSegList]
-        jcdDiffSegDF = pd.DataFrame(np.array(jcdDiffSegList), columns=["Count", "Dist"])
-        jcdDiffSegDF.to_csv(jcdDiffSegFilePath, encoding='utf-8', index=False)
+            ("./ThirdTrajectory/20180303143213_acce.csv",
+            "./ThirdTrajectory/20180303143213_gyro.csv",
+            "./ThirdTrajectory/20180303143213_wifi.csv"),
+
+            ("./ThirdTrajectory/20180303143540_acce.csv",
+             "./ThirdTrajectory/20180303143540_gyro.csv",
+             "./ThirdTrajectory/20180303143540_wifi.csv"),
+
+            ("./ThirdTrajectory/20180303143913_acce.csv",
+            "./ThirdTrajectory/20180303143913_gyro.csv",
+            "./ThirdTrajectory/20180303143913_wifi.csv")
+            )
+        jcdSameSegList = []
+        for sensorFilePath in sensorFilePathGroup:
+            acceTimeList, acceValueList = loadAcceData(sensorFilePath[0], relativeTime=False)
+            gyroTimeList, gyroValueList = loadGyroData(sensorFilePath[1], relativeTime=False)
+            wifiTimeList, wifiScanList = loadMovingWifi(sensorFilePath[2])
+
+            # Calculate the wifi sequence distance based on Jaccard Distance definition
+            jcdDistList = calculateJcdDist(acceTimeList, acceValueList, gyroTimeList, gyroValueList,
+                             wifiTimeList, wifiScanList, radioMapDict)
+            if len(jcdSameSegList) == 0:
+                jcdSameSegList.extend(jcdDistList)
+            else:
+                for i in range(len(jcdSameSegList)):
+                    jcdSameSegList[i] = min(jcdDistList[i], jcdSameSegList[i]) if i < len(jcdDistList) else jcdSameSegList[i]
+
+            jcdDistList = [(int(dist[0]), round(dist[1] * 1000) / 1000) for dist in jcdDistList]
+            print jcdDistList
+        print jcdSameSegList
+        # Process results
+        jcdSameSegList = [(int(dist[0]), dist[1]) for dist in jcdSameSegList]
+        jcdSameSegDict = {}
+        for jcdSameSeg in jcdSameSegList:
+            if jcdSameSegDict.has_key(jcdSameSeg[0]):
+                jcdSameSegDict.get(jcdSameSeg[0]).append(jcdSameSeg[1])
+            else:
+                jcdSameSegDict[jcdSameSeg[0]] = [jcdSameSeg[1]]
+        jcdSameSegList = []
+        for count, dist in jcdSameSegDict.iteritems():
+            jcdSameSegList.append((count, float(np.mean(dist))))
+        jcdSameSegList = [(int(dist[0]), round(dist[1] * 1000) / 1000) for dist in jcdSameSegList]
+        if saveFlag:
+            jcdSameSegFilePath = "jaccard_wifi_same_segment_%s.csv" % (time.strftime("%m%d"))
+            jcdSameSegDF = pd.DataFrame(np.array(jcdSameSegList), columns=["Count", "Dist"])
+            jcdSameSegDF.to_csv(jcdSameSegFilePath, encoding='utf-8', index=False)
+    else:
+        jaccardDiffFilePath = "jaccard_wifi_diff_segment_0319.csv"
+        jaccardSameFilePath = "jaccard_wifi_same_segment_0319.csv"
+        # load experimental results
+        countList = range(3, 21)
+        jcdDiffDF = pd.read_csv(jaccardDiffFilePath)
+        jcdDiffArray = jcdDiffDF.values
+        jcdDiffList = [jcd[1] for jcd in jcdDiffArray]
+        jcdDiffList = jcdDiffList[0:len(countList)]
+        jcdSameDF = pd.read_csv(jaccardSameFilePath)
+        jcdSameArray = jcdSameDF.values
+        jcdSameList = [jcd[1] for jcd in jcdSameArray]
+        jcdSameList = jcdSameList[0:len(countList)]
+
+        # Plot the figures
+        fig = plt.figure()
+        jcdDistAxes = fig.add_subplot(111)
+        jcdDistAxes.set_xlabel("$Length\ of\ WiFi\ Sequence$")
+        jcdDistAxes.set_ylabel("$Dissimilarity$")
+        oneYMajorLocator = MultipleLocator(0.1)
+        oneYMajorFormatter = FormatStrFormatter("%.1f")
+        oneYMinorLocator = MultipleLocator(0.05)
+        oneXMajorLocator = MultipleLocator(4)
+        oneXMajorFormatter = FormatStrFormatter("%d")
+        oneXMinorLocator = MultipleLocator(2)
+        jcdDistAxes.yaxis.set_major_locator(oneYMajorLocator)
+        jcdDistAxes.yaxis.set_major_formatter(oneYMajorFormatter)
+        jcdDistAxes.yaxis.set_minor_locator(oneYMinorLocator)
+        jcdDistAxes.xaxis.set_major_locator(oneXMajorLocator)
+        jcdDistAxes.xaxis.set_major_formatter(oneXMajorFormatter)
+        jcdDistAxes.xaxis.set_minor_locator(oneXMinorLocator)
+        # jcdDiffPlot, = jcdDistAxes.plot(countList, jcdDiffList, color="b", linestyle="--", marker="o",
+        #                                 label="Different Segments")
+        jcdDiffPlot, = jcdDistAxes.plot(countList, jcdDiffList, color="b", linestyle="--", marker="s", label="Different Segments")
+        jcdSamePlot, = jcdDistAxes.plot(countList, jcdSameList, color="r", marker="o", label="Same Segments")
+        #jcdDistAxes.axvline(t, ls=":", lw=2, color="#FF00CC") 0.63
+        jcdDistAxes.axhline(0.63, ls=":", lw=2, color="#FF00CC")
+        jcdDistAxes.text(11, 0.65, "d=0.63")
+        plt.legend(handles=[jcdDiffPlot, jcdSamePlot], loc="best")
+        plt.grid(False)
+        plt.show()
+        pass
     print("Done.")

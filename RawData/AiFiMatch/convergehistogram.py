@@ -14,7 +14,7 @@ import matplotlib
 import numpy as np
 import sys
 
-matplotlib.rcParams['font.size'] = 15
+matplotlib.rcParams['font.size'] = 23
 
 def drawHistogram(dataGroups, colors, patterns, labels, xTicks):
 
@@ -22,7 +22,7 @@ def drawHistogram(dataGroups, colors, patterns, labels, xTicks):
     axCvg = fig.add_subplot(111)
 
     index = np.arange(len(dataGroups))
-    bar_width = 0.20
+    bar_width = 0.3
     opacity = 0.4
     for i, dataGroup in enumerate(dataGroups):
         rectArray = axCvg.bar(index + i * bar_width, dataGroup, bar_width, alpha=opacity,
@@ -31,12 +31,12 @@ def drawHistogram(dataGroups, colors, patterns, labels, xTicks):
             h = rect.get_height()
             axCvg.text(rect.get_x() + rect.get_width() / 2, h,
                        "%.1f" % (dataGroup[j]) if math.fabs(dataGroup[j] - 84.6) > sys.float_info.epsilon else "$\infty$",
-                       ha="center", va="bottom")
+                       ha="center", va="bottom", fontsize="20")
 
     plt.ylabel('$Traveled\ Distance(m)$')
     plt.xticks(index + bar_width, xTicks)
-    plt.ylim(0,140)
-    plt.legend(loc="best", fontsize="15")
+    plt.ylim(0,120)
+    plt.legend(loc="best", fontsize="23")
     plt.tight_layout()
     plt.show()
 
