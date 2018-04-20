@@ -15,22 +15,14 @@ import timeit
 from sklearn import svm
 
 def accuracy(predictions, labels):
-    squareSum = np.sum((predictions-labels)**2, 1)
-    print(type(squareSum))
-    print(squareSum.shape)
-    print(squareSum)
-    c = np.array([v for v in squareSum])
-    print(c.shape, type(c))
-    print(np.sqrt(c))    
-    np.sqrt(np.array([v for v in squareSum]))
-    acc = np.mean([math.sqrt(v) for v in squareSum])
-    return acc
+    return np.mean(np.sqrt(np.sum((predictions-labels)**2, 1).astype(np.float32)))
 
 def firstSVM(wfTrain, posTrain, wfTest, posTest, logFlag=False):
+    
     if logFlag:
         print("Start to fit SVR model ...")
-    clfPosX = svm.SVR(gamma=0.01)
-    clfPosY = svm.SVR(gamma=0.01)
+    clfPosX = svm.SVR()
+    clfPosY = svm.SVR()
     clfPosX.fit(wfTrain, posTrain[:,0])
     clfPosY.fit(wfTrain, posTrain[:,1])
 
