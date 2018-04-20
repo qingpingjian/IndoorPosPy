@@ -100,13 +100,12 @@ if __name__ == "__main__":
 
     testTitle = "wifi_test"
     testRepoFileName = "%s-%s.csv" % (dateStr, testTitle)
-    macConfigFileName = "20180420-mac_list.csv"
-    
+    # macConfigFileName = "20180420-mac_list.csv"
+
     updateTrainSet = False
     updateTestSet = False
     if updateTrainSet:
         # Format the Wi-Fi raw data to train a predict model
-
         # Process the train data set
         trainFileDir = "../RadioMap"
 
@@ -115,11 +114,10 @@ if __name__ == "__main__":
         print("Train data set completed.")
     elif updateTestSet:
         # Format the test data set of Wi-Fi raw data
-
         # Process the test data set
         testFileDir = "../WifiTest"
 
         wifiTestDict = loadRawData(testFileDir, C=5, logFlag=True)
         saveDict2File(wifiTestDict, macConfigFileName, testRepoFileName, logFlag=True)
-
+        print("Testing data set completed.")
     print("Done.")
