@@ -12,6 +12,9 @@ import pandas as pd
 import sys, os
 import time
 
+# add module searching path
+sys.path.append("../../")
+
 from dataloader import loadWifiScan2
 
 def loadRawData(rawDataDir, C=3, logFlag=False):
@@ -80,8 +83,6 @@ def saveDict2File(wifiFPDict, macConfigFileName, wifiRepoFileName, defaultWifi=-
     return
 
 if __name__ == "__main__":
-    # add module searching path
-    sys.path.append("../../")
     # Format the Wi-Fi raw data to train a predict model
     trainTitle = "wifi_train"
     macConfigTitle = "mac_list"
