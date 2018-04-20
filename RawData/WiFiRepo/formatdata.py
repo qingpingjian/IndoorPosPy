@@ -31,7 +31,7 @@ def loadRawData(rawDataDir, C=3, logFlag=False):
     for rt, dirs, files in os.walk(rawDataDir):
         for fileName in files:
             if fileName.endswith("wifi.csv"):
-                absolutFilePath = os.path.join(trainFileDir, fileName)
+                absolutFilePath = os.path.join(rawDataDir, fileName)
                 scanWifiDict = loadWifiScan2(absolutFilePath, num=C)
                 for userID in scanWifiDict.keys():
                     if wifiFPDict.has_key(userID):
@@ -46,20 +46,29 @@ def loadRawData(rawDataDir, C=3, logFlag=False):
 
 
 def saveDict2File(wifiFPDict, macConfigFileName, wifiRepoFileName, defaultWifi=-100, logFlag=False):
-
-    # wireless access points in all
-    apSet = set([])
-    for userID in wifiFPDict.keys():
-        for wifiDict in wifiFPDict.get(userID)[1]:
-            apSet |= set(wifiDict.keys())
-    if logFlag:
-        print ("Wireless APs Count: %d" % (len(apSet)))
-    apList = list(apSet)
-    apIDList = ["wap%03d" % (i + 1) for i in range(len(apList))]
-    macConfigDF = pd.DataFrame(np.transpose([apList, apIDList]), columns=["mac", "id"])
-    macConfigDF.to_csv(macConfigFileName, encoding='utf-8', index=False)
-    if logFlag:
-        print("Save Wireless APs to %s" % (macConfigFileName))
+    apList = []
+    apIDList = []
+    if not os.path.exists(macConfigFileName):
+        # wireless access points in all
+        apSet = set([])
+        for userID in wifiFPDict.keys():
+            for wifiDict in wifiFPDict.get(userID)[1]:
+                apSet |= set(wifiDict.keys())
+        if logFlag:
+            print ("Wireless APs Count: %d" % (len(apSet)))
+        apList.extend(list(apSet))
+        apIDList.extend(["wap%03d" % (i + 1) for i in range(len(apList))])
+        macConfigDF = pd.DataFrame(np.transpose([apList, apIDList]), columns=["mac", "id"])
+        macConfigDF.to_csv(macConfigFileName, encoding='utf-8', index=False)
+        if logFlag:
+            print("Save Wireless APs to %s" % (macConfigFileName))
+    else:
+        macConfigDF = pd.read_csv(macConfigFileName)
+        acceInfo = macConfigDF.ix[:, ["mac", "id"]]
+        apList.extend([macConfig[0] for macConfig in acceInfo.values])
+        apIDList.extend([macConfig[1] for macConfig in acceInfo.values])
+        if logFlag:
+            print("Load Wireless APs from %s" % (macConfigFileName))
 
     # Re-orginaze the Wi-Fi dict
     heading = []
@@ -83,16 +92,34 @@ def saveDict2File(wifiFPDict, macConfigFileName, wifiRepoFileName, defaultWifi=-
     return
 
 if __name__ == "__main__":
-    # Format the Wi-Fi raw data to train a predict model
+    dateStr = time.strftime("%Y%m%d", time.localtime())
     trainTitle = "wifi_train"
     macConfigTitle = "mac_list"
-    dateStr = time.strftime("%Y%m%d", time.localtime())
     wifiRepoFileName = "%s-%s.csv" % (dateStr, trainTitle)
     macConfigFileName = "%s-%s.csv" % (dateStr, macConfigTitle)
-    # Process the train data set
-    trainFileDir = "../RadioMap"
 
-    wifiTrainDict = loadRawData(trainFileDir, C=5, logFlag=True)
-    saveDict2File(wifiTrainDict, macConfigFileName, wifiRepoFileName, logFlag=True)
+    testTitle = "wifi_test"
+    testRepoFileName = "%s-%s.csv" % (dateStr, testTitle)
+    macConfigFileName = "20180420-mac_list.csv"
+    
+    updateTrainSet = False
+    updateTestSet = False
+    if updateTrainSet:
+        # Format the Wi-Fi raw data to train a predict model
+
+        # Process the train data set
+        trainFileDir = "../RadioMap"
+
+        wifiTrainDict = loadRawData(trainFileDir, C=5, logFlag=True)
+        saveDict2File(wifiTrainDict, macConfigFileName, wifiRepoFileName, logFlag=True)
+        print("Train data set completed.")
+    elif updateTestSet:
+        # Format the test data set of Wi-Fi raw data
+
+        # Process the test data set
+        testFileDir = "../WifiTest"
+
+        wifiTestDict = loadRawData(testFileDir, C=5, logFlag=True)
+        saveDict2File(wifiTestDict, macConfigFileName, testRepoFileName, logFlag=True)
 
     print("Done.")
