@@ -168,11 +168,11 @@ if __name__ == "__main__":
 
     # Show error CDF
     fig = plt.figure()
-    knnAxe = fig.add_subplot(111)
-    knnAxe.set_xlabel("$Position\ Error(m)$")
-    knnAxe.set_ylabel("$Cumulative\ Probability$")
-    knnAxe.plot(X1, Y1, color="r", label="kNN")
-    knnAxe.plot(X2, Y2, color="b", label="Native Bayes")
+    fpAxe = fig.add_subplot(111)
+    fpAxe.set_xlabel("$Position\ Error(m)$")
+    fpAxe.set_ylabel("$Cumulative\ Probability$")
+    fpAxe.plot(X1, Y1, color="r", label="kNN")
+    fpAxe.plot(X2, Y2, color="b", label="Native Bayes")
 
     plt.legend(loc = 2)
     plt.grid()
