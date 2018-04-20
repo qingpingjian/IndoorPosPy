@@ -91,6 +91,20 @@ def loadWifiScan(filePath, num=15, stat=False):
     return wifiScanDict
 
 
+def loadWifiScan2(filePath, num=5):
+    wifiScanDF = pd.read_csv(filePath)
+    wifiScanInfo = wifiScanDF.ix[:, ["userid", "coordx", "coordy", "wifiinfos"]]
+    userID = wifiScanInfo.iloc[0, 0]
+    loc = (wifiScanInfo.iloc[0, 1], wifiScanInfo.iloc[0, 2])
+    wifiScanDict = {userID: [[], []]}
+    count = int(math.ceil((1.0 * wifiScanInfo.shape[0]) / num))
+    for i in range(count):
+        wifiScanDict.get(userID)[0].append(loc)
+        wifiDict = wifiStrAnalysis(wifiScanInfo.ix[0 + i * num : num + i * num, "wifiinfos"].values)
+        wifiScanDict.get(userID)[1].append(wifiDict)
+    return wifiScanDict
+
+
 def loadRadioMap(trainFileDir, statFlag=False):
     if not os.path.isdir(trainFileDir):
         return None
