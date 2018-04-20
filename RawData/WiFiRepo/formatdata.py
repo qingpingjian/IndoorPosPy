@@ -8,8 +8,8 @@ Created on 2018/4/20 14:27
 @software: PyCharm Community Edition
 """
 import numpy as np
-import os
 import pandas as pd
+import sys, os
 import time
 
 from dataloader import loadWifiScan2
@@ -80,6 +80,8 @@ def saveDict2File(wifiFPDict, macConfigFileName, wifiRepoFileName, defaultWifi=-
     return
 
 if __name__ == "__main__":
+    # add module searching path
+    sys.path.append("../../")
     # Format the Wi-Fi raw data to train a predict model
     trainTitle = "wifi_train"
     macConfigTitle = "mac_list"
