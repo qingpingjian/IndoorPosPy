@@ -10,7 +10,7 @@ Created on 2018/4/20 20:56
 import math
 import numpy as np
 import pandas as pd
-import timeit
+import time
 
 from sklearn import svm
 
@@ -21,10 +21,13 @@ def firstSVM(wfTrain, posTrain, wfTest, posTest, logFlag=False):
     
     if logFlag:
         print("Start to fit SVR model ...")
-    clfPosX = svm.SVR()
-    clfPosY = svm.SVR()
+    clfPosX = svm.SVR(kernel="linear")
+    clfPosY = svm.SVR(kernel="linear")
+    startTime = time.time()
     clfPosX.fit(wfTrain, posTrain[:,0])
     clfPosY.fit(wfTrain, posTrain[:,1])
+    endTime = time.time()
+    print("SVR regression time: %.2f" % (endTime-startTime))
 
     if logFlag:
         print("Start to predict the position by SVR ...")
