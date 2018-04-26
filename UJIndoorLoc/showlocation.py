@@ -10,6 +10,7 @@ Created on 2018/4/26 20:02
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import random as rd
 
 def spaceSave(wifiFingerprintFile):
     headings = ["BUILDINGID", "FLOOR", "SPACEID"]
@@ -21,6 +22,8 @@ def spaceSave(wifiFingerprintFile):
     return
 
 def showLoc(wifiFile, colFilterList):
+    headings = ["LONGITUDE", "LATITUDE", "BUILDINGID", "FLOOR"]
+
     pass
 
 if __name__ == "__main__":

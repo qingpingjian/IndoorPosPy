@@ -325,6 +325,7 @@ def genLocation(startPoint, endPoint, num, logFlag=False):
     return locList
 
 
+
 if __name__ == "__main__":
     paras = modelParameterDict.get("pete")
     print(paras[13])
