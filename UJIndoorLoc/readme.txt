@@ -22,3 +22,6 @@ Citation in BibTex:
   year={2014},
   organization={IEEE}
 }
+
+Statistics:
+(1) 独立的 SPACEID不能作为字典中的键值，不同的楼具有相同的Space编号

@@ -11,20 +11,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+def spaceSave(wifiFingerprintFile):
+    headings = ["BUILDINGID", "FLOOR", "SPACEID"]
+    newHeadings = ["FLOORCODE", "SPACEID"]
+    wifiDF = pd.read_csv(wifiFingerprintFile)
+    spaceArray = wifiDF.ix[:, headings].values.astype(np.int32)
+    spaceDF = pd.DataFrame(np.column_stack((spaceArray[:,0] * 10 + spaceArray[:,1], spaceArray[:,2])), columns=newHeadings)
+    spaceDF.to_csv("trainingSpace.csv", encoding='utf-8', index=False)
+    return
+
 def showLoc(wifiFile, colFilterList):
-    wifiDF = pd.read_csv(wifiFile)
-    locArray = wifiDF.ix[:, colFilterList].values
-    maxValues = np.max(locArray, axis=0)
-    print(maxValues)
-    minValues = np.min(locArray, axis=0)
-    print(minValues)
-    # acceDF.ix[:,['timestamp', 'acce_x', 'acce_y', 'acce_z']]
     pass
 
 if __name__ == "__main__":
-    wifiFPFile = "trainingData.csv"
-    headingFilterList = ["LONGITUDE", "LATITUDE"]
-
-    showLoc(wifiFPFile, headingFilterList)
-
+    wifiTrainFile = "trainingData.csv"
+    spaceSave(wifiTrainFile)
     print("Done.")
