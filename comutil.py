@@ -325,8 +325,31 @@ def genLocation(startPoint, endPoint, num, logFlag=False):
     return locList
 
 
+def jwdDistance(long1, lati1, long2, lati2):
+    """
+    :param long1: the longitude of first location
+    :param lati1: the latitude of first location
+    :param long2: the longitude of second location
+    :param lati2: the latitude of second location
+    :return: the distance between these two locations in meters
+    """
+    # the radius of earth in meters
+    r = 6378137.0
+    # from decimal degrees to radians
+    long1, lati1, long2, lati2 = map(math.radians, [long1, lati1, long2, lati2])
+    # haversine formula
+    a = lati2 - lati1
+    b = long2 - long1
+    d = 2 * math.asin(math.sqrt(math.sin(a/2.0)**2 + math.cos(lati1) * math.cos(lati2) * math.sin(b/2.0)** 2)) * r
+    return round(d, 3)
 
 if __name__ == "__main__":
-    paras = modelParameterDict.get("pete")
-    print(paras[13])
+    # paras = modelParameterDict.get("pete")
+    # print(paras[13])
+
+    a = (115.193701,38.540617) # m_1790
+    b = (115.092762,38.931803) # m_7973
+    dist = jwdDistance(a[0], a[1], b[0], b[1])
+    print("Distance: %.2fm" % dist)
+
     print("Done.")
