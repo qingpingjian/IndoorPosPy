@@ -343,6 +343,13 @@ def jwdDistance(long1, lati1, long2, lati2):
     d = 2 * math.asin(math.sqrt(math.sin(a/2.0)**2 + math.cos(lati1) * math.cos(lati2) * math.sin(b/2.0)** 2)) * r
     return round(d, 3)
 
+# Gaussian Processes regression for 529 room
+def locFilter(ptCoord, xMin=39.5, xMax=47.0, yMin=41.5, yMax=47.5):
+    xPt = ptCoord[0]
+    yPt = ptCoord[1]
+    return not((xPt < xMin or xPt > xMax) or (yPt < yMin or yPt > yMax))
+
+
 if __name__ == "__main__":
     # paras = modelParameterDict.get("pete")
     # print(paras[13])
@@ -351,5 +358,10 @@ if __name__ == "__main__":
     b = (115.092762,38.931803) # m_7973
     dist = jwdDistance(a[0], a[1], b[0], b[1])
     print("Distance: %.2fm" % dist)
+
+    o = (2.0, 3.0)
+    print locFilter(o, 1.0, 3.0, 2.0, 4.0)
+    p = (1.0, 5.0)
+    print locFilter(p, 1.0, 3.0, 2.0, 4.0)
 
     print("Done.")
