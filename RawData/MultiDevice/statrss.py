@@ -33,14 +33,14 @@ def rssHist(fileName, macAddr):
         rssList = [rssRecord.split("|") for rssRecord in rssStr[0].split(';')]
         for rss in rssList:
             if rss[0] == macAddr:
-                rssValueList.append(rss[1])
+                rssValueList.append(int(rss[1]))
     # Counting the frequency of values
     rssFreqDict = collections.Counter(rssValueList)
     rssLength = len(rssValueList)
     rssStrList = sorted(rssFreqDict.keys(), reverse=True)
     freqList = [round(rssFreqDict.get(rssStr) * 1.0 / rssLength, 4) for rssStr in rssStrList]
     values = [float(v) for v in rssStrList]
-    print np.mean(values)
+    print np.mean(np.array(rssValueList).astype(np.float32))
     print freqList
     xMin = min(values) - 1.0
     xMax = max(values) + 1.0
