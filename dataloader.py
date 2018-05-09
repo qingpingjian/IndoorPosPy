@@ -12,12 +12,14 @@ import numpy as np
 import os
 import pandas as pd
 
+from comutil import phoneParaDict
 from wififunc import wifiStrAnalysis, wifiSequenceProcess
 
 TIMESTAMP_BASELINE = 1490000000000
 
-def loadAcceData(filePath, relativeTime = True):
-    gravity = 9.411869  # Expect value of holding mobile phone static
+def loadAcceData(filePath, relativeTime = True, deviceID = "360n5"):
+
+    gravity = phoneParaDict.get(deviceID)[0] # Expect value of holding mobile phone static
     acceDF = pd.read_csv(filePath)
     acceInfo = acceDF.ix[:,['timestamp', 'acce_x', 'acce_y', 'acce_z']]
     acceTimeList = []

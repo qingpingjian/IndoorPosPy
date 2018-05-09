@@ -10,19 +10,24 @@ Created on 2017/12/27 22:03
 
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 
-from comutil import modelParameterDict, butterFilter, getNextExtreme
+from comutil import modelParameterDict, modelExtraParaDict, butterFilter, getNextExtreme
 from dataloader import loadAcceData
 
 
 class SimpleStepCounter(object):
     def __init__(self, personID="pete"):
-        para = modelParameterDict.get("pete")
+        para = modelParameterDict.get(personID)
         self.maxThreshold = para[0]
         self.minThreshold = para[1]
         self.durationThreshold = para[2]
         self.intervalThreshold = para[3]
-        pass
+        extraPara = modelExtraParaDict.get(personID)
+        self.maxDurationForContStepTh = extraPara[0]
+        self.minResidenceTh = extraPara[1]
+        self.minLastPeakValueFactor = extraPara[2]
+        return
 
     # def __init__(self, maxThreshold, minThreshold, durationThreshold, intervalThreshold):
     #     self.maxThreshold = maxThreshold
@@ -114,7 +119,7 @@ class SimpleStepCounter(object):
                     peakTimeList[-1] = peakTime
                     peakIndexList[-1] = peakIndex
         # Now we need to find the start point and the end point of each step
-        stepIndexList = [] # start1, end1, start2, end2
+        stepIndexList = [] # start1, peak1, end1, start2, peak2, end2, ...
         for i in range(len(peakValueList)):
             peakIndex = peakIndexList[i]
             startIndex = peakIndex - 1
@@ -138,6 +143,11 @@ class SimpleStepCounter(object):
                     startIndex = stepIndexList[-1]
                 else:
                     stepIndexList[-1] = startIndex
+            # Try to filter out the last step
+            if i == len(peakValueList) - 1 and \
+                  timeList[startIndex] - timeList[stepIndexList[-1]] > self.maxDurationForContStepTh and \
+                    peakValueList[i] < float(np.mean(peakValueList)) * self.minLastPeakValueFactor:
+                break # outer for clause
             stepIndexList.append(startIndex)
             stepIndexList.append(peakIndex)
             stepIndexList.append(endIndex)
@@ -145,11 +155,14 @@ class SimpleStepCounter(object):
 
 
 if __name__ == "__main__" :
+    # Prior Information
+    person = "pete"
+    device = "360n5"
     # Accelerometer data for step counting
     acceDataFilePath = "./Examples/StepCounter/20170707201405_acce.csv"
     acceDataFilePath = "./Examples/ExtendedKF/20180118102918_acce.csv"
 
-    acceTimeList, acceValueList = loadAcceData(acceDataFilePath)
+    acceTimeList, acceValueList = loadAcceData(acceDataFilePath, deviceID=device)
 
     # Smoothing filter - sliding windows
     # size = 7
@@ -160,7 +173,7 @@ if __name__ == "__main__" :
     # para = modelParameterDict.get("pete")
     # Algorithm of step counter
     # sc = SimpleStepCounter(para[0], para[1], para[2], para[3])
-    sc = SimpleStepCounter(personID="pete")
+    sc = SimpleStepCounter(personID=person)
     allIndexList = sc.countStep(acceTimeList, acceValueArray)
 
     peakIndexList = allIndexList[1::3]

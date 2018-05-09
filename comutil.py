@@ -16,9 +16,10 @@ from anglefunc import *
 from wififunc import wifiStrAnalysis
 
 """
-: accelerometer peak threshold, valley threshold,
-minimum two step peak duration, minimum duration between end and next start point
-: step length slope and offset
+0 : accelerometer peak threshold, 1 : valley threshold,
+2 : minimum two step peak duration,
+3 : minimum duration between end and next start point
+4 : step length slope and, 5 : offset
 : gyroscope peak threshold, valley threshold, minimum duration between two peak points,
 minimum slope belongs to mainly turning progress, minimum degree change belongs to mainly turning progress,
 maximum pause in turning progress, minimum degree for a left or right turn
@@ -33,6 +34,23 @@ modelParameterDict = {
               0.21853894, 0.46235461,
               0.905, -0.905, 2.45, 14.0, 12.0, 1.725, 66.5,
               0.1)
+}
+"""
+0 : maximum duration between two continuous step
+1 : minimum residence time between two different steps, pedestrian means to stay for a while
+2 : the factor for minimum value of peak point of last step >= mean(allpeakvalues) * <<xPara>>
+"""
+modelExtraParaDict = {
+    "pete": (0.245, 0.755, 0.485),
+    "super": (0.245, 0.755, 0.485)
+}
+"""
+0 : gravity
+"""
+phoneParaDict = {
+    "360n5": (9.411789, "others"),
+    "xiaomi3w": (9.411869, "others"),
+    "coolpad8675": (9.411869, "others")
 }
 
 def butterFilter(data, fs=50, lowcut=0.5, highcut=4.0, order=2):
@@ -157,6 +175,11 @@ def wifiExtract(startTime, endTime, wifiTimeList, wifiScanList, startIndex=0):
     :param startIndex:  the starting searching index
     :return: nextIndex, {mac1:[rss1,rss2], mac2:[rss3, rss4]} or None
     """
+    # stationary status: starting part or end part
+    if startTime == 0:
+        startTime = wifiTimeList[startIndex] - 1.0 # smaller than the first wifi scan result time
+    if math.fabs(endTime + 1.0) < 0.0001:
+        endTime = wifiTimeList[-1] + 1.0
     # check the input parameter
     if endTime <= startTime or wifiTimeList[startIndex] > endTime or wifiTimeList[-1] < startTime:
         return startIndex, None
