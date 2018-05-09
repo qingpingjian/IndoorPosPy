@@ -61,14 +61,14 @@ def loadCompData(filePath, relativeTime=True):
     return compTimeList, compValueList
 
 
-def loadMovingWifi(wifiFilePath):
+def loadMovingWifi(wifiFilePath, strAnalysis=False):
     wifiScanDF = pd.read_csv(wifiFilePath)
     wifiScanInfo = wifiScanDF.ix[:, ["timestamp", "wifiinfos"]]
     wifiTimeList = []
     wifiScanList = []
     for wifiRecord in wifiScanInfo.values:
         wifiTimeList.append((wifiRecord[0] - TIMESTAMP_BASELINE) / 1000.0) # milliseconds to seconds
-        wifiScanList.append(wifiRecord[1])
+        wifiScanList.append(wifiStrAnalysis([wifiRecord[1]]) if strAnalysis else wifiRecord[1])
     return wifiTimeList, wifiScanList
 
 
@@ -157,6 +157,7 @@ def loadBoundWifi(filePath):
         else:
             segWifiDict[segID] = [(locX, locY, wifiStrAnalysis([wifiInfo]))]
     return segWifiDict
+
 
 def loadCrowdSourcedWifi(wifiBoundDir):
     if not os.path.isdir(wifiBoundDir):

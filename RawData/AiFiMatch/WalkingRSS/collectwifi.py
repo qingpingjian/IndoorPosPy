@@ -11,11 +11,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import time
 
 from comutil import *
 from dataloader import loadAcceData, loadMovingWifi
 from stepcounter import SimpleStepCounter
-from wififunc import wifiDict2Str, wifiSequenceProcess
+from wififunc import wifiDict2Str, wifiSequenceProcess, wifiSeqJaccardDist
 
 # Environment Configuration
 # matplotlib.rcParams['font.size'] = 15
@@ -84,10 +85,9 @@ def wifiSequence(priorInfo, sensorFiles, personID="pete", device="360n5", debugF
 
 
 if __name__ == "__main__":
-    saveFlags = (True, False)
-    # 0 : tra01 & 360n5 & radiomap
-    controlFlag = 0
-    if controlFlag == 0:
+    saveFlags = (True, True, True, True)
+    controlFlag = 2
+    if controlFlag == 0: # 0 : tra01 & 360n5 & radiomap
         # TODO: Trajectory one radio map, (DONE)
         sensorFilesArray = (
             ("20180508085745_acce.csv", "20180508085745_wifi.csv"),
@@ -111,11 +111,132 @@ if __name__ == "__main__":
         for i in range(len(sensorFilesArray)):
             wifiBoundList.extend(wifiSequence(priorInfoArray[i], sensorFilesArray[i]))
         wifiSequence = wifiSequenceProcess(wifiBoundList)
-        if saveFlags[0]:
+        if saveFlags[controlFlag]:
             wifiSeq2Save = [("tra01", round(wifi[0] * 1000) / 1000, round(wifi[1] * 1000) / 1000, wifiDict2Str(wifi[2])) for wifi in wifiSequence]
             wifiSeqDF = pd.DataFrame(np.array(wifiSeq2Save), columns=["segid", "coordx", "coordy", "wifiinfos"])
             wifiSeqDF.to_csv(targetFile, encoding="utf-8", index=False)
-    elif controlFlag == 1:
-        pass
+    elif controlFlag == 1: # 1 : tra01 & 360n5 & testing
+        radiomapFile = "20180508163535_wifi_crowd.csv"
+        testingFilesArray = (
+            # Direction One
+            "20180509165157_wifi.csv",
+            "20180509165354_wifi.csv",
+            "20180509165638_wifi.csv",
+            # Direction Two
+            "20180509165247_wifi.csv",
+            "20180509165457_wifi.csv",
+            "20180509165726_wifi.csv",
+        )
+        _, baseWifiSeq = loadMovingWifi(radiomapFile, strAnalysis=True)
+        # baseWifiSeq = baseWifiSeq[-1::-1]
+        jcdDistArray = []
+        for testingFile in testingFilesArray:
+            _, testingWifiSeq = loadMovingWifi(testingFile, strAnalysis=True)
+            if len(testingWifiSeq) < 3:
+                print "Do not have enough wifi scan results in this trajectory"
+                continue
+            jcdTempList = []
+            for lenSeq in range(3, len(testingWifiSeq)):
+                sameJcd = wifiSeqJaccardDist(baseWifiSeq, testingWifiSeq[0:lenSeq])
+                jcdTempList.append((lenSeq, sameJcd))
+            print jcdTempList
+            jcdLen = len(jcdDistArray)
+            for i in range(len(jcdTempList)):
+                if i < jcdLen:
+                    jcdDistArray[i][1].append(jcdTempList[i][1])
+                else:
+                    jcdDistArray.append((jcdTempList[i][0], [jcdTempList[i][1]]))
+        print jcdDistArray
+        jcdDistList = [(dist[0], float(np.max(dist[1])), float(np.min(dist[1]))) for dist in jcdDistArray]
+
+        if saveFlags[controlFlag]:
+            jcdResultFile = "20180509165726_wifi_jaccard_same_360n5_%s.csv" % (time.strftime("%m%d"))
+            jcdDistList = [(int(dist[0]), round(dist[1] * 1000) / 1000, round(dist[2] * 1000) / 1000) for dist in jcdDistList]
+            jcdResultDF = pd.DataFrame(np.array(jcdDistList), columns=["Count", "Dist(max)", "Dist(min)"])
+            jcdResultDF.to_csv(jcdResultFile, encoding='utf-8', index=False)
+    elif controlFlag == 2:  # 2 : tra01-sym & 360n5 & testing
+        radiomapFile = "20180508163535_wifi_crowd.csv"
+        testingFilesArray = (
+            # Direction One
+            "20180509220215_wifi.csv",
+            "20180509220406_wifi.csv",
+            "20180509220556_wifi.csv",
+            "20180509220725_wifi.csv",
+            # Direction Two
+            "20180509220301_wifi.csv",
+            "20180509220453_wifi.csv",
+            "20180509220640_wifi.csv",
+            "20180509220813_wifi.csv",
+        )
+        _, baseWifiSeq = loadMovingWifi(radiomapFile, strAnalysis=True)
+        # baseWifiSeq = baseWifiSeq[-1::-1]
+        jcdDistArray = []
+        for testingFile in testingFilesArray:
+            _, testingWifiSeq = loadMovingWifi(testingFile, strAnalysis=True)
+            if len(testingWifiSeq) < 3:
+                print "Do not have enough wifi scan results in this trajectory"
+                continue
+            jcdTempList = []
+            for lenSeq in range(3, len(testingWifiSeq)):
+                sameJcd = wifiSeqJaccardDist(baseWifiSeq, testingWifiSeq[0:lenSeq])
+                jcdTempList.append((lenSeq, sameJcd))
+            print jcdTempList
+            jcdLen = len(jcdDistArray)
+            for i in range(len(jcdTempList)):
+                if i < jcdLen:
+                    jcdDistArray[i][1].append(jcdTempList[i][1])
+                else:
+                    jcdDistArray.append((jcdTempList[i][0], [jcdTempList[i][1]]))
+        print jcdDistArray
+        jcdDistList = [(dist[0], float(np.max(dist[1])), float(np.min(dist[1]))) for dist in jcdDistArray]
+
+        if saveFlags[controlFlag]:
+            jcdResultFile = "20180509220813_wifi_jaccard_diff_360n5_%s.csv" % (time.strftime("%m%d"))
+            jcdDistList = [(int(dist[0]), round(dist[1] * 1000) / 1000, round(dist[2] * 1000) / 1000) for dist in
+                           jcdDistList]
+            jcdResultDF = pd.DataFrame(np.array(jcdDistList), columns=["Count", "Dist(max)", "Dist(min)"])
+            jcdResultDF.to_csv(jcdResultFile, encoding='utf-8', index=False)
+    elif controlFlag == 3: # 3: tra01 & coolpad & testing
+        radiomapFile = "20180508163535_wifi_crowd.csv"
+        testingFilesArray = (
+            # Direction One
+            "20180509195812_wifi.csv",
+            "20180509200006_wifi.csv",
+            "20180509200136_wifi.csv",
+            # Direction Two
+            "20180509195857_wifi.csv",
+            "20180509200050_wifi.csv",
+            "20180509200222_wifi.csv",
+        )
+        _, baseWifiSeq = loadMovingWifi(radiomapFile, strAnalysis=True)
+        # baseWifiSeq = baseWifiSeq[-1::-1]
+        jcdDistArray = []
+        for testingFile in testingFilesArray:
+            _, testingWifiSeq = loadMovingWifi(testingFile, strAnalysis=True)
+            if len(testingWifiSeq) < 3:
+                print "Do not have enough wifi scan results in this trajectory"
+                continue
+            jcdTempList = []
+            for lenSeq in range(3, len(testingWifiSeq)):
+                sameJcd = wifiSeqJaccardDist(baseWifiSeq, testingWifiSeq[0:lenSeq])
+                jcdTempList.append((lenSeq, sameJcd))
+            print jcdTempList
+            jcdLen = len(jcdDistArray)
+            for i in range(len(jcdTempList)):
+                if i < jcdLen:
+                    jcdDistArray[i][1].append(jcdTempList[i][1])
+                else:
+                    jcdDistArray.append((jcdTempList[i][0], [jcdTempList[i][1]]))
+        print jcdDistArray
+        jcdDistList = [(dist[0], float(np.max(dist[1])), float(np.min(dist[1]))) for dist in jcdDistArray]
+
+
+        if saveFlags[controlFlag]:
+            jcdResultFile = "20180509200222_wifi_jaccard_same_coolpad_%s.csv" % (time.strftime("%m%d"))
+            jcdDistList = [(int(dist[0]), round(dist[1] * 1000) / 1000, round(dist[2] * 1000) / 1000) for dist in
+                           jcdDistList]
+            jcdResultDF = pd.DataFrame(np.array(jcdDistList), columns=["Count", "Dist(max)", "Dist(min)"])
+            jcdResultDF.to_csv(jcdResultFile, encoding='utf-8', index=False)
+
 
     print("Done.")

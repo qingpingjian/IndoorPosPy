@@ -68,7 +68,7 @@ def eulerDistanceA(baseWifiDict, compWifiDict, wifiNum=7, wifiDefault=-100.0):
     return math.sqrt(eulerDist)
 
 
-def jaccardDist(firstWifiDict, secondWifiDict, rssThreshold = -80.0):
+def jaccardDist(firstWifiDict, secondWifiDict, rssThreshold = -93.0):
     firstMacSet = set([mac for mac, rss in firstWifiDict.iteritems() if float(np.mean(rss)) > rssThreshold])
     secondMacSet = set([mac for mac, rss in secondWifiDict.iteritems() if float(np.mean(rss)) > rssThreshold])
     unionSet = firstMacSet | secondMacSet
@@ -125,7 +125,7 @@ def wifiSequenceProcess(wifiSequence):
     return wifiSeqNew
 
 
-def wifiSeqJaccardDist(baseWifiSeq, walkWifiSeq, maxWindow=9):
+def wifiSeqJaccardDist(baseWifiSeq, walkWifiSeq, maxWindow=21):
     if len(baseWifiSeq) < 5 or len(walkWifiSeq) < 3:
         return 0.5 # TODO: the threshold should not effect the extraction algorithm
     jcd = 1.0
