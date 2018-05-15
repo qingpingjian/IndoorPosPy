@@ -232,6 +232,7 @@ if __name__ == "__main__":
                     # load real locations
                     locRealDF = pd.read_csv(filePaths[2])
                     locRealList = [(loc[0], loc[1]) for loc in locRealDF.values]
+
                     locEstRelList = myPDR.getLocEstimation(acceTimeList, acceValueList,
                                                            gyroTimeList, gyroValueList,
                                                            stepError=stepLengthErrorList[i],
