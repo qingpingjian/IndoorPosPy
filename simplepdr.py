@@ -59,7 +59,7 @@ class PDR(object):
 
             # stepLength = para[4] * (1.0 / (aeTime - asTime)) +  para[5]
             # Step length with gaussian errors
-            stepLength = stepLengthRegress + (rd.gauss(0, stepError) if stepError > 0.0001 else 0.0)
+            stepLength = stepLengthRegress + rd.gauss(0, stepError)
 
             rotStartIndex = timeAlign(asTime, gyroTimeList, currentIndex)
             currentIndex = rotStartIndex - 1

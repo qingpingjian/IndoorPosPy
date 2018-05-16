@@ -164,6 +164,30 @@ class SimpleTurnDetector(object):
                 print("Something wrong happened!")
         return turnPointIndexList, stAndedList
 
+    def detectTurnV2(self, timeList, gyroValueList, rotaDegreeList):
+        turnPointIndexList = self.turnPoint(timeList, gyroValueList)
+        stAndedList = []
+        for i in range(len(turnPointIndexList)):
+            pointIndex = turnPointIndexList[i]
+            # For each turn point, we give a start index and end index to search the rotation degree
+            searchStIndex = max(0, pointIndex - 150)
+            searchEdIndex = min(len(timeList)-1, pointIndex + 150)
+            if i >= 1:
+                searchStIndex = (pointIndex + turnPointIndexList[i-1]) / 2
+            if i < len(turnPointIndexList)-1:
+                searchEdIndex = (pointIndex + turnPointIndexList[i+1]) / 2
+            turnIndexList = self.turnDegree(timeList, rotaDegreeList, searchStIndex, searchEdIndex)
+            if len(turnIndexList) == 2:
+                stAndedList.extend(turnIndexList)
+            else:
+                print("Something wrong happened!")
+        allTurnIndexList = []
+        for j in range(len(turnPointIndexList)):
+            allTurnIndexList.append(stAndedList[2 * j])
+            allTurnIndexList.append(turnPointIndexList[j])
+            allTurnIndexList.append(stAndedList[2 *j + 1])
+        return allTurnIndexList
+
     def turnTranslate(self, degree, humanFlag=True):
         turnType = 0 # Normal Walking
         if degree > self.minTurnDegree * 2:

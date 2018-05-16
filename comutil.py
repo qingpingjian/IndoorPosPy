@@ -165,6 +165,18 @@ def timeAlign(baseTime, targetTimeList, startIndex = 0):
     return targetIndex
 
 
+def turnAlignStepByTime(baseTimeList, stepEndTimeList, currentStepIndex=0):
+    turnAtStepIndexList = []
+    for turnTime in baseTimeList:
+        for sIndex in range(currentStepIndex, len(stepEndTimeList)):
+            edt = stepEndTimeList[sIndex]  # Alignment References
+            if edt > turnTime:
+                turnAtStepIndexList.append(sIndex)
+                currentStepIndex = sIndex + 1
+                break
+    return turnAtStepIndexList
+
+
 def wifiExtract(startTime, endTime, wifiTimeList, wifiScanList, startIndex=0):
     """
     Get Wi-Fi scan record according start timestamp and end timestamp
