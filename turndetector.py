@@ -10,6 +10,7 @@ Created on 2018/1/22 15:56
 
 import matplotlib
 import matplotlib.pyplot as plt
+import random as rd
 
 from comutil import *
 from dataloader import loadAcceData, loadGyroData

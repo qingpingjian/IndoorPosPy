@@ -213,6 +213,27 @@ class DigitalMap(object):
                 candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, self.minProb, 0])
         return candidateList
 
+    def extractSegmentByDirAndStartPoint(self, walkingDir=0.0, startPoint=(1.2, 1.7)):
+        """
+        [startX, startY, endX, endY, ['s1', 's2', ..., 'sk'], probLastTime, probCurrent, pLastSegment, extendStatus]
+        :param walkingDir: base direction to select segments candidate
+        :return: segments candidate, the pLastProb is set to minProb firstly,
+        and the extend status is set to zero, (0, 1, ..., possible counter num in a straight corridor)
+        """
+        normalWalkDir = angleNormalize(walkingDir)
+        startX = startPoint[0]
+        startY = startPoint[1]
+        candidateList = []
+        for id, attr in self.nodesDict.iteritems():
+            firstAccessDir = attr[2]  # The accessible direction of the first endpoint
+            secondAccessDir = attr[5]  # The accessible direction of the second endpoint
+            if isHeadingMatch(normalWalkDir, firstAccessDir) and self.isSamePoint(startPoint, (attr[3], attr[4])):
+                # The second point is starting point and the first point is the next point
+                candidateList.append([attr[3], attr[4], attr[0], attr[1], [id], self.initProb, self.initProb, self.minProb, 0])
+            elif isHeadingMatch(normalWalkDir, secondAccessDir) and self.isSamePoint(startPoint, (attr[0], attr[1])):
+                candidateList.append([attr[0], attr[1], attr[3], attr[4], [id], self.initProb, self.initProb, self.minProb, 0])
+        return candidateList
+
     def emissionProb(self, stepLength, stepNum, stepStd, segIDArray):
         travelDist = stepLength * stepNum
         distStd = stepStd * stepNum
