@@ -148,8 +148,8 @@ class AiFiMatcher(object):
         # Adding gaussian error to rotation values
         # degree to radian
         headingErrorInRad = headingError * (math.pi / 180.0)
-        rotaValueList = [r + rd.gauss(0, headingErrorInRad) for r in rotaValueList]
-        rotaDegreeList = [r * 180.0 / math.pi for r in rotaValueList] # Radian to Degree
+        rotaWithErrorValueList = [r + rd.gauss(0, headingErrorInRad) for r in rotaValueList]
+        rotaDegreeList = [r * 180.0 / math.pi for r in rotaWithErrorValueList] # Radian to Degree
         windowSize = 23
         gyroTimeList, gyroValueList = slidingWindowFilter(gyroTimeList, gyroValueList, windowSize)
         simpleTd = SimpleTurnDetector(self.personID)
@@ -223,6 +223,7 @@ class AiFiMatcher(object):
                         estiLocList.append((xLoc, yLoc))
                 else: # we uses the PDR data
                     currentHeading = meanAngle(headingList[rotStartIndex:rotEndIndex + 1])
+                    currentHeading += rd.gauss(0, headingErrorInRad / 2.0)
                     lastLoc = estiLocList[-1]
                     xLoc = lastLoc[0] + stepLength * math.sin(currentHeading)
                     yLoc = lastLoc[1] + stepLength * math.cos(currentHeading)
@@ -239,6 +240,7 @@ class AiFiMatcher(object):
                 rotEndIndex = timeAlign(aeTime, gyroTimeList, currentGyroIndex)
                 currentGyroIndex = rotEndIndex - 1
                 currentHeading = meanAngle(headingList[rotStartIndex:rotEndIndex + 1])
+                currentHeading += rd.gauss(0, headingErrorInRad / 2.0)
                 lastLoc = estiLocList[-1]
                 xLoc = lastLoc[0] + stepLength * math.sin(currentHeading)
                 yLoc = lastLoc[1] + stepLength * math.cos(currentHeading)
@@ -262,9 +264,9 @@ if __name__ == "__main__":
         headingErrorList = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         errorType = "step"
         # Performance VS. Heading Error
-        # stepLengthErrorList = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        # headingErrorList = (0, 10, 15, 20, 25, 30, 35, 40, 45, 50)
-        # errorType = "heading"
+        stepLengthErrorList = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        headingErrorList = (0, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+        errorType = "heading"
 
         rawDataArray = []
         # initial point and direction
@@ -275,7 +277,7 @@ if __name__ == "__main__":
         rootDirectory = "./RawData/AiFiMatch/ErrorInfluence"
         dataBelongs = "t1"
         # TODO: *****-- ***** #
-        trajectorySwitch = 3
+        trajectorySwitch = 2
         if trajectorySwitch == 1:
             # TODO: First trajectory of AiFiMatch
             rawDataArrayofFirst = [
@@ -307,12 +309,18 @@ if __name__ == "__main__":
         elif trajectorySwitch == 2:
             # TODO: Second trajectory of AiFiMatch
             rawDataArrayofSecond = [
-                (# The second one(*)
-                    "./RawData/AiFiMatch/SecondTrajectory/20180303165821_acce.csv",
-                    "./RawData/AiFiMatch/SecondTrajectory/20180303165821_gyro.csv",
-                    "./RawData/AiFiMatch/SecondTrajectory/20180303165821_wifi.csv",
-                    "./RawData/AiFiMatch/SecondTrajectory/20180303165821_route.csv",
+                (  # The first one
+                    "./RawData/AiFiMatch/SecondTrajectory/20180303165540_acce.csv",
+                    "./RawData/AiFiMatch/SecondTrajectory/20180303165540_gyro.csv",
+                    "./RawData/AiFiMatch/SecondTrajectory/20180303165540_wifi.csv",
+                    "./RawData/AiFiMatch/SecondTrajectory/20180303165540_route.csv",
                 ),
+                # (# The second one(*)
+                #     "./RawData/AiFiMatch/SecondTrajectory/20180303165821_acce.csv",
+                #     "./RawData/AiFiMatch/SecondTrajectory/20180303165821_gyro.csv",
+                #     "./RawData/AiFiMatch/SecondTrajectory/20180303165821_wifi.csv",
+                #     "./RawData/AiFiMatch/SecondTrajectory/20180303165821_route.csv",
+                # ),
                 ( # The third one
                     "./RawData/AiFiMatch/SecondTrajectory/20180303170055_acce.csv",
                     "./RawData/AiFiMatch/SecondTrajectory/20180303170055_gyro.csv",

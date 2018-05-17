@@ -34,6 +34,10 @@ if __name__ == "__main__":
     pdrHeadingT2ErrorFile = "pdr_error_heading_t2_0515.csv"
     pdrHeadingT3ErrorFile = "pdr_error_heading_t3_0515.csv"
 
+    aifiHeadingT1ErrorFile = "aifi_error_heading_t1_0517.csv"
+    aifiHeadingT2ErrorFile = "aifi_error_heading_t2_0517.csv"
+    aifiHeadingT3ErrorFile = "aifi_error_heading_t3_0517.csv"
+
     # Step Length Error
     pdrStepT1ErrorDF = pd.read_csv(pdrStepT1ErrorFile)
     pdrStepT1ErrorArray = pdrStepT1ErrorDF.ix[1:, ["Delta_Step", "Error(m)"]].values
@@ -56,7 +60,14 @@ if __name__ == "__main__":
     pdrHeadingT2ErrorDF = pd.read_csv(pdrHeadingT2ErrorFile)
     pdrHeadingT2ErrArray = pdrHeadingT2ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
     pdrHeadingT3ErrorDF = pd.read_csv(pdrHeadingT3ErrorFile)
-    pdrHeadingT3ErrorArray = pdrHeadingT3ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
+    pdrHeadingT3ErrArray = pdrHeadingT3ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
+
+    aifiHeadingT1ErrorDF = pd.read_csv(aifiHeadingT1ErrorFile)
+    aifiHeadingT1ErrArray = aifiHeadingT1ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
+    aifiHeadingT2ErrorDF = pd.read_csv(aifiHeadingT2ErrorFile)
+    aifiHeadingT2ErrArray = aifiHeadingT2ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
+    aifiHeadingT3ErrorDF = pd.read_csv(aifiHeadingT3ErrorFile)
+    aifiHeadingT3ErrArray = aifiHeadingT3ErrorDF.ix[1:, ["Delta_Heading", "Error(m)"]].values
 
     # Plot the axes
     fig = plt.figure()
@@ -107,11 +118,12 @@ if __name__ == "__main__":
 
     headingFirstErrAxe = plt.subplot(234)
     headingFirstErrAxe.plot(pdrHeadingT1ErrArray[:, 0], pdrHeadingT1ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
+    headingFirstErrAxe.plot(aifiHeadingT1ErrArray[:, 0], aifiHeadingT1ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
     headingFirstErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
     headingFirstErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
     headingFirstErrAxe.set_title("$(d)$", fontdict=firstFont)
     headingFirstErrAxe.set_xlim(0, 60)
-    headingFirstErrAxe.set_ylim(2, 14)
+    headingFirstErrAxe.set_ylim(0, 14)
     headingFirstErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)
@@ -120,11 +132,12 @@ if __name__ == "__main__":
 
     headingSecondErrAxe = plt.subplot(235)
     headingSecondErrAxe.plot(pdrHeadingT2ErrArray[:, 0], pdrHeadingT2ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
+    headingSecondErrAxe.plot(aifiHeadingT2ErrArray[:, 0], aifiHeadingT2ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
     headingSecondErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
     headingSecondErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
     headingSecondErrAxe.set_title("$(e)$", fontdict=firstFont)
     headingSecondErrAxe.set_xlim(0, 60)
-    headingSecondErrAxe.set_ylim(2, 14)
+    headingSecondErrAxe.set_ylim(0, 14)
     headingSecondErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)
@@ -132,12 +145,13 @@ if __name__ == "__main__":
     headingSecondErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     headingThirdErrAxe = plt.subplot(236)
-    headingThirdErrAxe.plot(pdrHeadingT3ErrorArray[:, 0], pdrHeadingT3ErrorArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
+    headingThirdErrAxe.plot(pdrHeadingT3ErrArray[:, 0], pdrHeadingT3ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
+    headingThirdErrAxe.plot(aifiHeadingT3ErrArray[:, 0], aifiHeadingT3ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
     headingThirdErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
     headingThirdErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
     headingThirdErrAxe.set_title("$(f)$", fontdict=firstFont)
     headingThirdErrAxe.set_xlim(0, 60)
-    headingThirdErrAxe.set_ylim(2, 14)
+    headingThirdErrAxe.set_ylim(0, 14)
     headingThirdErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)

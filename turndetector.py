@@ -126,6 +126,8 @@ class SimpleTurnDetector(object):
             b = extremeValueList[i-1]
             c = extremeTimeList[i]
             d = extremeTimeList[i-1]
+            if (math.fabs(c - d) < 0.000000001):
+                c = d + 0.1
             g = math.fabs((a - b) / (c - d))
             if g > self.minSlope and math.fabs(a - b) > self.minRotDegree:
                 tsIndex = extremeIndexList[i-1]
