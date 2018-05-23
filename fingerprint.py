@@ -127,6 +127,7 @@ class BayesLocation(object):
 
 
 if __name__ == "__main__":
+    saveFlags = (False, False)
     trainFileDir = "./RawData/RadioMap"
     testFileDir = "./RawData/WifiTest"
     estimationKNNFilePath = "./Examples/Fingerprint/20180104205655_estimate_knn.csv"
@@ -141,8 +142,9 @@ if __name__ == "__main__":
     knnEstimateList = firstKNN.estimation(wifiTestDict, wifiTrainDict, multiDevice=False)
 
     # Save knn estimate results
-    knnEstDF = pd.DataFrame(np.array(knnEstimateList), columns=["X(m)", "Y(m)", "EX(m)", "EY(m)"])
-    knnEstDF.to_csv(estimationKNNFilePath, encoding='utf-8', index=False)
+    if saveFlags[0]:
+        knnEstDF = pd.DataFrame(np.array(knnEstimateList), columns=["X(m)", "Y(m)", "EX(m)", "EY(m)"])
+        knnEstDF.to_csv(estimationKNNFilePath, encoding='utf-8', index=False)
 
     knnErrorList = [round(math.sqrt((locates[0] - locates[2]) ** 2 + (locates[1] - locates[3]) ** 2) * 1000) / 1000
                     for locates in knnEstimateList]
@@ -156,8 +158,9 @@ if __name__ == "__main__":
     bayesEstimateList = firstBayes.estimation(wifiTestDict, wifiTrainDict, multiDevice=False)
 
     # Save native bayes estimate results
-    bayesEstDF = pd.DataFrame(np.array(bayesEstimateList), columns=["X(m)", "Y(m)", "EX(m)", "EY(m)"])
-    bayesEstDF.to_csv(estimationBayesFilePath, encoding='utf-8', index=False)
+    if saveFlags[1]:
+        bayesEstDF = pd.DataFrame(np.array(bayesEstimateList), columns=["X(m)", "Y(m)", "EX(m)", "EY(m)"])
+        bayesEstDF.to_csv(estimationBayesFilePath, encoding='utf-8', index=False)
 
     bayesErrorList = [round(math.sqrt((locates[0] - locates[2]) ** 2 + (locates[1] - locates[3]) ** 2) * 1000) / 1000
                       for locates in bayesEstimateList]
