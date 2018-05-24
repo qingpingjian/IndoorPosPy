@@ -20,7 +20,7 @@ matplotlib.rcParams['font.size'] = 15
 # matplotlib.rcParams['axes.unicode_minus'] = False # 用来正常显示负号
 
 """
-Step Length Model: s = h(af + b) + c
+Step Length Model: s = h(af + b) + c or s = ah + bf + c
 where:
 h is height of body
 f is step frequency
@@ -90,6 +90,9 @@ if __name__ == "__main__":
     # The mean step length is 73.85
     # The fit function is Ls = 21.853894 * Fs + 46.235461 - Super Ma
     # The mean step length is 84.51
+    residualArray = residualsFunc(pLSQ[0], stepLengthArray, stepFrequencyArray)
+    residualArray = np.array(residualArray)
+    print "The least sum of residual squares is ", np.sum(residualArray**2, axis=0)
 
     # Plot the fit function
     plt.xlabel("$Step Frequency(Hz)$")
