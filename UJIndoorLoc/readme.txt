@@ -1,3 +1,5 @@
+*** 该目录同级脚本需要在tensorflow环境中运行，并且需要运行的时间比较长，最好在服务器上的虚拟机中运行。***
+
 Attribute Information:
 
 Attribute 001 (WAP001): Intensity value for WAP001. Negative integer values from -104 to 0 and +100. Positive value 100 used if WAP001 was not detected. 

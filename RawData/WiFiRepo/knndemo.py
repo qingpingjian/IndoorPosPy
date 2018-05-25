@@ -13,7 +13,7 @@ import pandas as pd
 from sklearn import neighbors
 
 def accuracy(predictions, labels):
-    squareSum = np.sum((predictions-labels)**2, 1)
+    squareSum = np.sum(np.array((predictions-labels))**2, 1)
     return np.mean(np.sqrt(squareSum.astype(np.float32)))
 
 def firstKNN(wifiTrain, posTrain, wifiTest, posTest):

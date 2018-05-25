@@ -7,4 +7,7 @@ Collect Wi-Fi Fingerprints from 4.39(3.0 with 3.2) meters from an AP with mac(50
 20180510104023_wifi.csv morning
 20180429161018_wifi.csv afternoon
 20180511203156_wifi.csv evening
-# Fingerprints from Xiaomi MI 3W with Android version 6.0.1 smartphone
+# Fingerprints from Huawei Hornor with Android version 6.0.1 smartphone
+//TODO:
+# Fingerprints from Xiaomi 3W with Android version 6.0.1 smartphone
+//TODO:
