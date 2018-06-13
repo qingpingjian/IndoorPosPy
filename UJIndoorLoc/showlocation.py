@@ -22,10 +22,10 @@ def spaceSave(wifiFingerprintFile):
     return
 
 def showLoc(wifiFingerprintFile, debugFlag=False):
-    headings = ["LONGITUDE", "LATITUDE", "BUILDINGID", "FLOOR"]
+    headings = ["LONGITUDE", "LATITUDE", "BUILDINGID", "FLOOR", "SPACEID"]
     wifiDF = pd.read_csv(wifiFingerprintFile)
     if debugFlag:
-        wifiDF = wifiDF.head(20)
+        wifiDF = wifiDF.head(2000)
     locArray = wifiDF.ix[:,headings].values
     coordArray = locArray[:,0:2]
     locDict = {}
@@ -60,8 +60,32 @@ def showLoc(wifiFingerprintFile, debugFlag=False):
     plt.show()
     return
 
+def showLoc2(wifiFingerprintFile, debugFlag=False):
+    headings = ["BUILDINGID", "FLOOR", "SPACEID"]
+    wifiDF = pd.read_csv(wifiFingerprintFile)
+    if debugFlag:
+        wifiDF = wifiDF.head(200)
+    spaceArray = wifiDF.ix[:,headings].values
+    spaceIDDict = {}
+    spaceDict2 = {}
+    for spaceRecord in spaceArray:
+        buildID = spaceRecord[0]
+        if spaceIDDict.has_key(buildID):
+            spaceIDDict[buildID].append((buildID + 1) * 10000 + (spaceRecord[1] + 1) * 1000 + spaceRecord[2])
+            spaceDict2[buildID].append((spaceRecord[1] + 1) * 1000 + spaceRecord[2])
+        else:
+            spaceIDDict[buildID] = [(buildID + 1) * 10000 + (spaceRecord[1] + 1) * 1000 + spaceRecord[2]]
+            spaceDict2[buildID] = [(spaceRecord[1] + 1) * 1000 + spaceRecord[2]]
+    buildIDList = spaceIDDict.keys()
+    print len(spaceIDDict[buildIDList[2]])
+    print len(sorted(set(spaceDict2[buildIDList[2]])))
+    print len(set(spaceIDDict[buildIDList[2]]))
+    return
+
+
 if __name__ == "__main__":
     wifiTrainFile = "trainingData.csv"
     #spaceSave(wifiTrainFile)
-    showLoc(wifiTrainFile)
+    showLoc(wifiTrainFile, debugFlag=True)
+    # showLoc2(wifiTrainFile, debugFlag=False)
     print("Done.")

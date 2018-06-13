@@ -26,4 +26,4 @@ Citation in BibTex:
 }
 
 Statistics:
-(1) 独立的 SPACEID不能作为字典中的键值，不同的楼具有相同的Space编号
+(1) 独立的 SPACEID不能作为字典中的键值，不同的楼以及相同的楼中不同的楼层具有相同的Space编号，
