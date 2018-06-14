@@ -52,6 +52,7 @@ def first_knn_classifier(train_file, test_file, default_wifi, k):
 if __name__ == "__main__":
     wifi_train_file = "trainingData.csv"
     wifi_validate_file = "validationData.csv"
+    # 5 vs 92 取得的92.169%的楼层的识别率
     default_wifi_list = range(-90, -106, -1)
     k_para_list = range(1, 42, 2)
     for default_value in default_wifi_list:
