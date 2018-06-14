@@ -53,7 +53,7 @@ if __name__ == "__main__":
     wifi_train_file = "trainingData.csv"
     wifi_validate_file = "validationData.csv"
     default_wifi_list = range(-90, -106, -1)
-    k_para_list = range(1, 22, 2)
+    k_para_list = range(1, 42, 2)
     for default_value in default_wifi_list:
         for k_para in k_para_list:
             accuracy = first_knn_classifier(wifi_train_file, wifi_validate_file, default_value, k_para)
