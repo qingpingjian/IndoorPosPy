@@ -143,7 +143,9 @@ class FreeLoc(object):
             for train_fp in train_fp_list:
                 free_loc_score_list.append((train_fp[0], self.free_loc_score(train_fp[1], test_free_loc_dict)))
             free_loc_score_list.sort(key=lambda x:x[1], reverse=True)
-            print free_loc_score_list[0:10]
+            # if free_loc_score_list[0][1] < 20:
+            #     print free_loc_score_list[0:10]
+                #continue # Try to optimize the location error
             neigh_coord = [free_loc[0] for free_loc in free_loc_score_list[0:self.nNeighbours]]
             estimate_coord = np.mean(neigh_coord, axis=0)
             estimateList.append((test_coord[0], test_coord[1], estimate_coord[0], estimate_coord[1]))
@@ -184,14 +186,20 @@ if __name__ == "__main__":
     elif control_flag_array[1]:
         train_wifi_dict = load_wifi_data("./UJIndoorLoc/trainingData.csv")
         test_wifi_dict = load_wifi_data("./UJIndoorLoc/validationData.csv")
-        second_free_loc = FreeLoc(delta_value=10, w=2, dist_threshold = 1.5, nNeighbours = 3)
-        train_wifi_array_dict = second_free_loc.prepocess(train_wifi_dict,combine_same=True)
-        test_wifi_array_dict = second_free_loc.prepocess(test_wifi_dict, combine_same=False)
-        estimate_coord_list = second_free_loc.estimation(train_wifi_array_dict, test_wifi_array_dict)
+        second_free_loc = FreeLoc(delta_value=10, w=2, dist_threshold = 1.5, nNeighbours = 13)
 
-        free_loc_error_list = [round(math.sqrt((coords[0] - coords[2]) ** 2 + (coords[1] - coords[3]) ** 2) * 1000) / 1000
-                        for coords in estimate_coord_list]
-        print np.mean(free_loc_error_list, axis=0)
+        delta_array = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        nNeighbours_array = [3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25]
+        for delta in delta_array:
+            for nNb in nNeighbours_array:
+                second_free_loc.update_para(delta_value=delta, w=2, dist_threshold = 1.5, nNeighbours = nNb)
+                train_wifi_array_dict = second_free_loc.prepocess(train_wifi_dict,combine_same=False)
+                test_wifi_array_dict = second_free_loc.prepocess(test_wifi_dict, combine_same=False)
+                estimate_coord_list = second_free_loc.estimation(train_wifi_array_dict, test_wifi_array_dict)
+
+                free_loc_error_list = [round(math.sqrt((coords[0] - coords[2]) ** 2 + (coords[1] - coords[3]) ** 2) * 1000) / 1000
+                                for coords in estimate_coord_list]
+                print "Delta:", delta, " Neighbours: ", nNb, " Mean Errors: ", np.mean(free_loc_error_list, axis=0)
     else:
         pass
     print("Done.")
