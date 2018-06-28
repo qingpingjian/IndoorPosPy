@@ -179,10 +179,62 @@ def loadCrowdSourcedWifi(wifiBoundDir):
     print processedRadioMapDict.keys()
     return processedRadioMapDict
 
+# ------------ UJIndoorLoc begin ----------- #
+part_heading_list = ['LONGITUDE','LATITUDE','FLOOR','BUILDINGID','SPACEID','RELATIVEPOSITION','USERID','PHONEID','TIMESTAMP']
+
+def get_wap_heading():
+    ap_heading_list = []
+    for index in range(1,520 + 1):
+        ap_id_str = "WAP%03d" % (index)
+        ap_heading_list.append(ap_id_str)
+    return ap_heading_list
+
+def load_wifi_data(raw_wifi_file):
+    ap_heading_list = get_wap_heading()
+    heading_list = []
+    heading_list.extend(ap_heading_list)
+    heading_list.extend(part_heading_list)
+    wifi_df = pd.read_csv(raw_wifi_file)
+    wifi_dict = {} # {build_id: [features_array, labels_array, [coordinate1, coordinate2], phone_array]}
+    for wifi_record in wifi_df.ix[:, heading_list].values:
+        build_id = wifi_record[len(ap_heading_list) - 1 + 4]
+        floor_id = wifi_record[len(ap_heading_list) - 1 + 3]
+        space_id = wifi_record[len(ap_heading_list) - 1 + 5]
+        wifi_info = wifi_record[0:len(ap_heading_list)].astype(float)
+        space_label = int((build_id + 1) * 10000 + (floor_id + 1) * 1000 + space_id)
+        coord_meter = (wifi_record[len(ap_heading_list) - 1 + 1], wifi_record[len(ap_heading_list) - 1 + 2])
+        phone_id = int(wifi_record[len(ap_heading_list) - 1 + 8])
+        if wifi_dict.has_key(build_id):
+            tempList = wifi_dict[build_id]
+            tempList[0].append(wifi_info)
+            tempList[1].append(space_label)
+            tempList[2].append(coord_meter)
+            tempList[3].append(phone_id)
+        else:
+            wifi_dict[build_id] = [[wifi_info], [space_label], [coord_meter], [phone_id]]
+    return wifi_dict
+# ------------ UJIndoorLoc end ----------- #
 
 if __name__ == "__main__":
+
     # wifiScanFilePath = "./RawData/RadioMap/20180104202838_wifi.csv"
     # print (loadWifiScan(wifiScanFilePath))
-    wifiBoundDir = "./RawData/AiFiMatch/SegmentFingerprint/"
-    loadCrowdSourcedWifi(wifiBoundDir)
+
+    # wifiBoundDir = "./RawData/AiFiMatch/SegmentFingerprint/"
+    # loadCrowdSourcedWifi(wifiBoundDir)
+
+    # ----------- UJIndoorLoc Begin ----------- #
+    train_wifi_dict = load_wifi_data("./UJIndoorLoc/trainingData.csv")
+    build_list = train_wifi_dict.keys()
+    print build_list
+    # Show the first wifi infomation for each building
+    fp_num = 0
+    for build_id in build_list:
+        wifi_info = train_wifi_dict.get(build_id)
+        wifi_info_array = np.array(wifi_info[0])
+        print wifi_info_array.shape
+        fp_num += wifi_info_array.shape[0]
+    print fp_num
+    # ----------- UJIndoorLoc End ----------- #
+
     print("Done.")

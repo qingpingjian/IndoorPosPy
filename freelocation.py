@@ -11,7 +11,7 @@ import math
 import numpy as np
 
 from collections import Counter
-from  dataloader2 import load_wifi_data
+from dataloader import load_wifi_data
 
 class FreeLoc(object):
 
@@ -112,6 +112,7 @@ class FreeLoc(object):
                     continue
                 tmp_mac_list.append(wifi_rss_list_based_freq[j][0])
             wifi_free_loc_dict[ap_mac] = set(tmp_mac_list)
+        #print wifi_free_loc_dict
         return wifi_free_loc_dict
 
     def free_loc_score(self, train_free_loc_dict, test_free_loc_dict):
@@ -127,17 +128,22 @@ class FreeLoc(object):
         estimateList = []
         # fingerprint format:
         # [labels_array, phoneID_array, [coordinate1, coordinate2, ...], [[feathers_array, ...], [feathers_array, ...]]]
-        for i in range(len(test_fp_info[0])):
-            test_coord = test_fp_info[2][i]
-            test_fp_feature_array = test_fp_info[3][i]
+        train_fp_list = []
+        for i in range(len(train_fp_info[0])):
+            train_coord = train_fp_info[2][i]
+            train_fp_feature_array = train_fp_info[3][i]
+            train_free_loc_dict = self.free_loc_process(train_fp_feature_array)
+            train_fp_list.append((train_coord, train_free_loc_dict))
+
+        for j in range(len(test_fp_info[0])):
+            test_coord = test_fp_info[2][j]
+            test_fp_feature_array = test_fp_info[3][j]
             test_free_loc_dict = self.free_loc_process(test_fp_feature_array)
             free_loc_score_list = []
-            for j in range(len(train_fp_info[0])):
-                train_coord = train_fp_info[2][j]
-                train_fp_feature_array = train_fp_info[3][j]
-                train_free_loc_dict = self.free_loc_process(train_fp_feature_array)
-                free_loc_score_list.append((train_coord, self.free_loc_score(train_free_loc_dict, test_free_loc_dict)))
+            for train_fp in train_fp_list:
+                free_loc_score_list.append((train_fp[0], self.free_loc_score(train_fp[1], test_free_loc_dict)))
             free_loc_score_list.sort(key=lambda x:x[1], reverse=True)
+            print free_loc_score_list[0:10]
             neigh_coord = [free_loc[0] for free_loc in free_loc_score_list[0:self.nNeighbours]]
             estimate_coord = np.mean(neigh_coord, axis=0)
             estimateList.append((test_coord[0], test_coord[1], estimate_coord[0], estimate_coord[1]))
@@ -154,26 +160,30 @@ class FreeLoc(object):
 
 if __name__ == "__main__":
     control_flag_array = (True, False)
+    #control_flag_array = (False, True)
     if control_flag_array[0]:
-        user_fp_dict = {"13":[
+        train_fp_dict = {"13":[
             [[-50, -55, -67, -72, -88, -90, 100],
-             [-65, -68, -74, -52, -91, -87, 100],
              [-65, -51, -53, -66, -82, -85, 100],
              [-92, -80, -67, -75, -58, -54, 100]],
-            ["101", "101", "101", "102"],
-            [(1,1), (1,1.5), (1.5,1), (3,3)],
-            [1, 1, 1, 1]
+            ["101", "101", "102"],
+            [(1,1),(1.5,1), (3,3)],
+            [1, 1, 1]
         ]}
-        usera_fp = [[-50, -55, -67, -72, -88, -90, 100]]
-        userb_fp = [[-65, -68, -74, -52, -91, -87, 100]]
-        userc_fp = [[-65, -51, -53, -66, -82, -85, 100]]
-        userd_fp = [[-92, -80, -67, -75, -58, -54, 100]]
-        first_free_loc = FreeLoc(delta_value=10)
-        print first_free_loc.prepocess(user_fp_dict, combine_same=False)
-        pass
+        test_fp_dict = {"13":[
+            [[-65, -68, -74, -52, -91, -87, 100]],
+            ["101"],
+            [(1,1.5)],
+            [1]
+        ]}
+        first_free_loc = FreeLoc(delta_value=10, w=1, nNeighbours=2)
+        train_info =  first_free_loc.prepocess(train_fp_dict, combine_same=False)
+        test_info = first_free_loc.prepocess(test_fp_dict, combine_same=False)
+        estimate_coord_list = first_free_loc.estimation(train_info, test_info)
+        print estimate_coord_list
     elif control_flag_array[1]:
-        train_wifi_dict = load_wifi_data("trainingData.csv")
-        test_wifi_dict = load_wifi_data("validationData.csv")
+        train_wifi_dict = load_wifi_data("./UJIndoorLoc/trainingData.csv")
+        test_wifi_dict = load_wifi_data("./UJIndoorLoc/validationData.csv")
         second_free_loc = FreeLoc(delta_value=10, w=2, dist_threshold = 1.5, nNeighbours = 3)
         train_wifi_array_dict = second_free_loc.prepocess(train_wifi_dict,combine_same=True)
         test_wifi_array_dict = second_free_loc.prepocess(test_wifi_dict, combine_same=False)

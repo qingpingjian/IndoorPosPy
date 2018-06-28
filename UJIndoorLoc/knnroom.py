@@ -10,7 +10,7 @@ Created on 2018/6/13 9:25
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn import neighbors
-from dataloader2 import load_wifi_data
+from dataloader import load_wifi_data
 
 
 def get_accuracy(test_label_list, test_predict_list):

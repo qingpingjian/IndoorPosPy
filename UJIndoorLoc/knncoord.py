@@ -9,7 +9,7 @@ Created on 2018/6/13 22:36
 """
 import numpy as np
 from sklearn import neighbors
-from dataloader2 import load_wifi_data
+from dataloader import load_wifi_data
 
 def accuracy(predictions, labels):
     squareSum = np.sum(np.array((predictions-labels))**2, axis=1)
