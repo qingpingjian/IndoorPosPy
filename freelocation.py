@@ -159,8 +159,8 @@ class FreeLoc(object):
 
 
 if __name__ == "__main__":
-    control_flag_array = (True, False)
-    #control_flag_array = (False, True)
+    #control_flag_array = (True, False)
+    control_flag_array = (False, True)
     if control_flag_array[0]:
         train_fp_dict = {"13":[
             [[-50, -55, -67, -72, -88, -90, 100],
