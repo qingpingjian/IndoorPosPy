@@ -25,7 +25,8 @@ def showImage(filePath, locationDataFiles, routeColors):
     #colors = ((0, 255, 0), (255, 0, 0), (255, 127, 0), (0, 127, 255))
     for i, locFile in enumerate(locationDataFiles):
         locDF = pd.read_csv(locFile)
-        locList = [(loc[0] * (7169 / 56.4) + 30, loc[1] * (10006 / 78.95) - 150) for loc in locDF.values]
+        #locList = [(loc[0] * (7169 / 56.4) + 30, loc[1] * (10006 / 78.95) - 150) for loc in locDF.values]
+        locList = [(loc[0] * (5777 / 62.4) + 175, loc[1] * (8101 / 78.95) - 196) for loc in locDF.values]
         draw.line(([(loc[1], loc[0]) for loc in locList]), fill=routeColors[i], width=25)
         # for loc in locList:
         #     bbox = [(loc[1] - 10, loc[0] - 10), (loc[1] + 10, loc[0] + 10)]
@@ -39,9 +40,11 @@ def showImage(filePath, locationDataFiles, routeColors):
     plt.show()
 
 if __name__ == "__main__":
-    imageFilePath = "environment_0302.png"
+    #imageFilePath = "environment_0302.png"
+    imageFilePath = "../20180705-envrionment-aifi.png"
     realLocFilePath = "20180303165821_route.csv"
-    estiLocFilePath = "20180303165821_estimate_pdr.csv"
+    #estiLocFilePath = "20180303165821_estimate_pdr.csv"
+    estiLocFilePath = "20180303165540_estimate_pdr.csv"
     offlineFilePath = "20180303165821_estimate_aifi_offline.csv"
     colors = ((0, 255, 0), (0, 0, 255), (255, 0, 0))
     showImage(imageFilePath, [realLocFilePath, estiLocFilePath, offlineFilePath], colors)
