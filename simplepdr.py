@@ -146,7 +146,7 @@ if __name__ == "__main__":
         rootDirectory = "./RawData/AiFiMatch/ErrorInfluence"
         dataBelongs = "t1"
         # TODO: *****-- ***** #
-        trajectorySwitch = 3
+        trajectorySwitch = 2
         if trajectorySwitch == 1:
             # TODO: First trajectory of AiFiMatch
             rawDataArrayofFirst = [
@@ -209,12 +209,12 @@ if __name__ == "__main__":
 
         # TODO: *****-- ***** #
         # Performance VS. Step Length Error
-        stepLengthErrorList = (0.0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5)
-        headingErrorList = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        stepLengthErrorList = [0.0, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5]
+        headingErrorList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         errorType = "step"
         # Performance VS. Heading Error
-        stepLengthErrorList = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        headingErrorList = (0, 10, 15, 20, 25, 30, 35, 40, 45, 50)
+        stepLengthErrorList = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        headingErrorList = [0, 10, 15, 20, 25, 30, 35, 40, 45, 50]
         errorType = "heading"
 
         errorListInSensorError = []

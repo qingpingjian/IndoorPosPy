@@ -7,18 +7,22 @@ Created on 2018/5/15 19:51
 @file: sensorerrorcmp.py
 @software: PyCharm Community Edition
 """
+import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 
+# Environment Configuration
+matplotlib.rcParams['font.size'] = 18
+
 firstFont = {
-    'family': 'serif',
+    'family': 'Times New Roman',
     'color': 'black',
     'weight': 'normal',
-    'size': 16,
+    'size': 18,
     }
-tickFontSize = 16
+tickFontSize = 18
 
 if __name__ == "__main__":
     pdrStepT1ErrorFile = "pdr_error_step_t1_0515.csv"
@@ -71,14 +75,20 @@ if __name__ == "__main__":
 
     # Plot the axes
     fig = plt.figure()
+    plt.rc('font', family='Times New Roman')
+    colorGroup = ["red", "blue"]
+    colorGroup = ["#000000", "#000000"]
     stepFirstErrAxe = plt.subplot(321)
-    stepFirstErrAxe.plot(pdrStepT1ErrorArray[:, 0], pdrStepT1ErrorArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    stepFirstErrAxe.plot(aifiStepT1ErrorArray[:, 0], aifiStepT1ErrorArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
+    stepFirstErrAxe.plot(pdrStepT1ErrorArray[:, 0], pdrStepT1ErrorArray[:, 1], color=colorGroup[0], linestyle="-",
+                         marker="^", linewidth=2, label="Basic PDR")
+    stepFirstErrAxe.plot(aifiStepT1ErrorArray[:, 0], aifiStepT1ErrorArray[:, 1], color=colorGroup[1], linestyle="-",
+                         marker="o", linewidth=2, label="AiFiMatch")
     stepFirstErrAxe.set_xlabel("$\sigma_s(m)$", fontdict=firstFont)
-    stepFirstErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    stepFirstErrAxe.set_title("$(a)$", fontdict=firstFont)
+    stepFirstErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    stepFirstErrAxe.set_title("(a)", fontdict=firstFont)
     stepFirstErrAxe.set_xlim(0.0, 0.6)
     stepFirstErrAxe.set_ylim(0, 8)
+    stepFirstErrAxe.xaxis.set_major_locator(MultipleLocator(0.1))
     stepFirstErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     stepFirstErrAxe.yaxis.set_minor_locator(MultipleLocator(1))
     plt.xticks(fontsize=tickFontSize)
@@ -87,13 +97,16 @@ if __name__ == "__main__":
     stepFirstErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     stepSecondErrAxe = plt.subplot(322)
-    stepSecondErrAxe.plot(pdrStepT2ErrorArray[:, 0], pdrStepT2ErrorArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    stepSecondErrAxe.plot(aifiStepT2ErrorArray[:, 0], aifiStepT2ErrorArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
+    stepSecondErrAxe.plot(pdrStepT2ErrorArray[:, 0], pdrStepT2ErrorArray[:, 1], color=colorGroup[0], linestyle="-",
+                          marker="^", linewidth=2, label="Basic PDR")
+    stepSecondErrAxe.plot(aifiStepT2ErrorArray[:, 0], aifiStepT2ErrorArray[:, 1], color=colorGroup[1], linestyle="-",
+                          marker="o", linewidth=2, label="AiFiMatch")
     stepSecondErrAxe.set_xlabel("$\sigma_s(m)$", fontdict=firstFont)
-    stepSecondErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    stepSecondErrAxe.set_title("$(b)$", fontdict=firstFont)
+    stepSecondErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    stepSecondErrAxe.set_title("(b)", fontdict=firstFont)
     stepSecondErrAxe.set_xlim(0.0, 0.6)
     stepSecondErrAxe.set_ylim(0, 6)
+    stepSecondErrAxe.xaxis.set_major_locator(MultipleLocator(0.1))
     stepSecondErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     stepSecondErrAxe.yaxis.set_minor_locator(MultipleLocator(1))
     plt.xticks(fontsize=tickFontSize)
@@ -102,13 +115,16 @@ if __name__ == "__main__":
     stepSecondErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     stepThirdErrAxe = plt.subplot(323)
-    stepThirdErrAxe.plot(pdrStepT3ErrorArray[:, 0], pdrStepT3ErrorArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    stepThirdErrAxe.plot(aifiStepT3ErrorArray[:, 0], aifiStepT3ErrorArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
+    stepThirdErrAxe.plot(pdrStepT3ErrorArray[:, 0], pdrStepT3ErrorArray[:, 1], color=colorGroup[0], linestyle="-",
+                         marker="^", linewidth=2, label="Basic PDR")
+    stepThirdErrAxe.plot(aifiStepT3ErrorArray[:, 0], aifiStepT3ErrorArray[:, 1], color=colorGroup[1], linestyle="-",
+                         marker="o", linewidth=2, label="AiFiMatch")
     stepThirdErrAxe.set_xlabel("$\sigma_s(m)$", fontdict=firstFont)
-    stepThirdErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    stepThirdErrAxe.set_title("$(c)$", fontdict=firstFont)
+    stepThirdErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    stepThirdErrAxe.set_title("(c)", fontdict=firstFont)
     stepThirdErrAxe.set_xlim(0.0, 0.6)
     stepThirdErrAxe.set_ylim(2, 6)
+    stepThirdErrAxe.xaxis.set_major_locator(MultipleLocator(0.1))
     stepThirdErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     stepThirdErrAxe.yaxis.set_minor_locator(MultipleLocator(1))
     plt.xticks(fontsize=tickFontSize)
@@ -117,13 +133,16 @@ if __name__ == "__main__":
     stepThirdErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     headingFirstErrAxe = plt.subplot(324)
-    headingFirstErrAxe.plot(pdrHeadingT1ErrArray[:, 0], pdrHeadingT1ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    headingFirstErrAxe.plot(aifiHeadingT1ErrArray[:, 0], aifiHeadingT1ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
-    headingFirstErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
-    headingFirstErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    headingFirstErrAxe.set_title("$(d)$", fontdict=firstFont)
+    headingFirstErrAxe.plot(pdrHeadingT1ErrArray[:, 0], pdrHeadingT1ErrArray[:, 1], color=colorGroup[0], linestyle="-",
+                            marker="^", linewidth=2, label="Basic PDR")
+    headingFirstErrAxe.plot(aifiHeadingT1ErrArray[:, 0], aifiHeadingT1ErrArray[:, 1], color=colorGroup[1], linestyle="-",
+                            marker="o", linewidth=2, label="AiFiMatch")
+    headingFirstErrAxe.set_xlabel(r"$\sigma_{\varphi}(\degree)$", fontdict=firstFont)
+    headingFirstErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    headingFirstErrAxe.set_title("(d)", fontdict=firstFont)
     headingFirstErrAxe.set_xlim(0, 60)
     headingFirstErrAxe.set_ylim(0, 14)
+    headingFirstErrAxe.xaxis.set_major_locator(MultipleLocator(10))
     headingFirstErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)
@@ -131,13 +150,16 @@ if __name__ == "__main__":
     headingFirstErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     headingSecondErrAxe = plt.subplot(325)
-    headingSecondErrAxe.plot(pdrHeadingT2ErrArray[:, 0], pdrHeadingT2ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    headingSecondErrAxe.plot(aifiHeadingT2ErrArray[:, 0], aifiHeadingT2ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
-    headingSecondErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
-    headingSecondErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    headingSecondErrAxe.set_title("$(e)$", fontdict=firstFont)
+    headingSecondErrAxe.plot(pdrHeadingT2ErrArray[:, 0], pdrHeadingT2ErrArray[:, 1], color=colorGroup[0], linestyle="-",
+                             marker="^", linewidth=2, label="Basic PDR")
+    headingSecondErrAxe.plot(aifiHeadingT2ErrArray[:, 0], aifiHeadingT2ErrArray[:, 1], color=colorGroup[1], linestyle="-",
+                             marker="o", linewidth=2, label="AiFiMatch")
+    headingSecondErrAxe.set_xlabel(r"$\sigma_{\varphi}(\degree)$", fontdict=firstFont)
+    headingSecondErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    headingSecondErrAxe.set_title("(e)", fontdict=firstFont)
     headingSecondErrAxe.set_xlim(0, 60)
     headingSecondErrAxe.set_ylim(0, 14)
+    headingSecondErrAxe.xaxis.set_major_locator(MultipleLocator(10))
     headingSecondErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)
@@ -145,13 +167,16 @@ if __name__ == "__main__":
     headingSecondErrAxe.legend(loc=2, fontsize=tickFontSize)
 
     headingThirdErrAxe = plt.subplot(326)
-    headingThirdErrAxe.plot(pdrHeadingT3ErrArray[:, 0], pdrHeadingT3ErrArray[:, 1], "r-", marker="^", linewidth=2, label="$Basic\ PDR$")
-    headingThirdErrAxe.plot(aifiHeadingT3ErrArray[:, 0], aifiHeadingT3ErrArray[:, 1], "b-", marker="o", linewidth=2, label="$AiFiMatch$")
-    headingThirdErrAxe.set_xlabel(r"$\sigma_{\varphi}(degree)$", fontdict=firstFont)
-    headingThirdErrAxe.set_ylabel("$Position\ Error(m)$", fontdict=firstFont)
-    headingThirdErrAxe.set_title("$(f)$", fontdict=firstFont)
+    headingThirdErrAxe.plot(pdrHeadingT3ErrArray[:, 0], pdrHeadingT3ErrArray[:, 1], color=colorGroup[0], linestyle="-",
+                            marker="^", linewidth=2, label="Basic PDR")
+    headingThirdErrAxe.plot(aifiHeadingT3ErrArray[:, 0], aifiHeadingT3ErrArray[:, 1], color=colorGroup[1], linestyle="-",
+                            marker="o", linewidth=2, label="AiFiMatch")
+    headingThirdErrAxe.set_xlabel(r"$\sigma_{\varphi}(\degree)$", fontdict=firstFont)
+    headingThirdErrAxe.set_ylabel("Position Error(m)", fontdict=firstFont)
+    headingThirdErrAxe.set_title("(f)", fontdict=firstFont)
     headingThirdErrAxe.set_xlim(0, 60)
     headingThirdErrAxe.set_ylim(0, 14)
+    headingThirdErrAxe.xaxis.set_major_locator(MultipleLocator(10))
     headingThirdErrAxe.yaxis.set_major_locator(MultipleLocator(2))
     plt.xticks(fontsize=tickFontSize)
     plt.yticks(fontsize=tickFontSize)

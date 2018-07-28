@@ -7,18 +7,19 @@ Created on 2018/1/20 21:27
 @file: activitydemo.py
 @software: PyCharm Community Edition
 """
-
+import matplotlib
 import matplotlib.pyplot as plt
 
 from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
-
 from comutil import *
 from dataloader import loadAcceData, loadGyroData
 
+# Environment Configuration
+matplotlib.rcParams['font.size'] = 18
 
 if __name__ == "__main__":
-    sensorFilePath = ("./Examples/ActivityDetector/20170622153925_acce.csv",
-                      "./Examples/ActivityDetector/20170622153925_gyro.csv")
+    sensorFilePath = ("20170622153925_acce.csv",
+                      "20170622153925_gyro.csv")
 
     # Load accelerometer data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0])
@@ -64,37 +65,47 @@ if __name__ == "__main__":
     rotDegreeListForUTurn = [r * -180.0 / math.pi for r in rotAngleListForUTurn]
 
     fig = plt.figure()
-    statSeparateAxe = fig.add_subplot(311)
-    statSeparateAxe.set_ylim(0.0, 3.0)
-    statSeparateAxe.yaxis.set_major_locator(MultipleLocator(1.0))
-    statSeparateAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
-    statSeparateAxe.yaxis.set_minor_locator(MultipleLocator(0.25))
-    statSeparateAxe.set_xticks([]) # Hidden the x ticks
-    statSeparateAxe.set_ylabel("$Var. Acc.$")
-    statSeparateAxe.plot(timeListForStat, valueListForStat, color="red", lw=5, linestyle=":", label="Stationary")
-    statSeparateAxe.plot(timeListForWalk, valueListForWalk, color="blue", lw=4, linestyle="-", label="Walking")
-    plt.legend(loc=2)
 
-    walkSeparateAxe = fig.add_subplot(312)
-    walkSeparateAxe.set_ylim(-2.0, 2.0)
-    walkSeparateAxe.yaxis.set_major_locator(MultipleLocator(1.0))
-    walkSeparateAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
-    walkSeparateAxe.yaxis.set_minor_locator(MultipleLocator(0.5))
-    walkSeparateAxe.set_xticks([]) # Hidden the x ticks
-    walkSeparateAxe.set_ylabel("$Rot. Rat.$")
-    walkSeparateAxe.plot(timeListForNW, valueListForNW, color="red", lw=5, linestyle=":", label="Normal Walking")
-    walkSeparateAxe.plot(timeListForTurns, valueListForTurns, color="blue", lw=4, linestyle="-", label="Turns")
-    plt.legend(loc=4)
-
-    turnSeparateAxe = fig.add_subplot(313)
+    turnSeparateAxe = fig.add_subplot(131)
     turnSeparateAxe.set_ylim(-50, 200)
     turnSeparateAxe.yaxis.set_major_locator(MultipleLocator(50))
     turnSeparateAxe.yaxis.set_major_formatter(FormatStrFormatter("%d"))
     turnSeparateAxe.yaxis.set_minor_locator(MultipleLocator(25))
     turnSeparateAxe.set_xticks([]) # Hidden the x ticks
     turnSeparateAxe.set_ylabel("$Rot. Ang.$")
-    turnSeparateAxe.plot(timeListForLeft, rotDegreeListForLeft, color="red", lw=5, linestyle=":", label="Left Turn")
-    turnSeparateAxe.plot(timeListForUTurn, rotDegreeListForUTurn, color="blue", lw=4, linestyle="-", label="U-Turn")
+    # For the publication of a paper version (Just white or black)
+    # turnSeparateAxe.plot(timeListForLeft, rotDegreeListForLeft, color="black", lw=4, linestyle="--", label="$Left\ Turn$")
+    # turnSeparateAxe.plot(timeListForUTurn, rotDegreeListForUTurn, color="black", lw=2, linestyle="-", label="$U-Turn$")
+    turnSeparateAxe.plot(timeListForLeft, rotDegreeListForLeft, color="red", lw=4, linestyle="--", label="$Left\ Turn$")
+    turnSeparateAxe.plot(timeListForUTurn, rotDegreeListForUTurn, color="blue", lw=2, linestyle="-", label="$U-Turn$")
+    plt.legend(loc=2)
+
+    walkSeparateAxe = fig.add_subplot(132)
+    walkSeparateAxe.set_ylim(-2.0, 2.0)
+    walkSeparateAxe.yaxis.set_major_locator(MultipleLocator(1.0))
+    walkSeparateAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    walkSeparateAxe.yaxis.set_minor_locator(MultipleLocator(0.5))
+    walkSeparateAxe.set_xticks([]) # Hidden the x ticks
+    walkSeparateAxe.set_ylabel("$Rot. Rat.$")
+    # For the publication of a paper version (Just white or black)
+    # walkSeparateAxe.plot(timeListForNW, valueListForNW, color="black", lw=4, linestyle="--", label="$Normal\ Walking$")
+    # walkSeparateAxe.plot(timeListForTurns, valueListForTurns, color="black", lw=2, linestyle="-", label="$Turns$")
+    walkSeparateAxe.plot(timeListForNW, valueListForNW, color="red", lw=4, linestyle="--", label="$Normal\ Walking$")
+    walkSeparateAxe.plot(timeListForTurns, valueListForTurns, color="blue", lw=2, linestyle="-", label="$Turns$")
+    plt.legend(loc=4)
+
+    statSeparateAxe = fig.add_subplot(133)
+    statSeparateAxe.set_ylim(-0.25, 3.0)
+    statSeparateAxe.yaxis.set_major_locator(MultipleLocator(1.0))
+    statSeparateAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    statSeparateAxe.yaxis.set_minor_locator(MultipleLocator(0.25))
+    statSeparateAxe.set_xticks([]) # Hidden the x ticks
+    statSeparateAxe.set_ylabel("$Var. Acc.$")
+    # For the publication of a paper version (Just white or black)
+    # statSeparateAxe.plot(timeListForStat, valueListForStat, color="black", lw=4, linestyle="--", label="$Stationary$")
+    # statSeparateAxe.plot(timeListForWalk, valueListForWalk, color="black", lw=2, linestyle="-", label="$Walking$")
+    statSeparateAxe.plot(timeListForStat, valueListForStat, color="red", lw=4, linestyle="--", label="$Stationary$")
+    statSeparateAxe.plot(timeListForWalk, valueListForWalk, color="blue", lw=2, linestyle="-", label="$Walking$")
     plt.legend(loc=2)
 
     plt.show()

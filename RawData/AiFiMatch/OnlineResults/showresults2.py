@@ -8,7 +8,14 @@ from matplotlib.ticker import  MultipleLocator, FormatStrFormatter
 import pandas as pd
 
 # Environment Configuration
-matplotlib.rcParams['font.size'] = 20
+matplotlib.rcParams['font.size'] = 18
+
+firstFont = {
+    'family': 'Times New Roman',
+    'color': 'black',
+    'weight': 'normal',
+    'size': 18,
+    }
 
 def loadErrorData(positionErrorFilePath):
     positionErrorFilePath = unicode(positionErrorFilePath, "utf-8")
@@ -48,71 +55,59 @@ if __name__ == "__main__":
 
     # Plot the axes
     fig = plt.figure()
+    plt.rc('font', family='Times New Roman')
+    colorGroup = ["blue", "red"]
+    colorGroup = ["#000000", "#000000"]
+
     rtOneAxe = plt.subplot(311)
-    oneYMajorLocator = MultipleLocator(10.0)
-    oneYMajorFormatter = FormatStrFormatter("%.1f")
-    oneYMinorLocator = MultipleLocator(4)
-    oneXMajorLocator = MultipleLocator(50)
-    oneXMajorFormatter = FormatStrFormatter("%d")
-    oneXMinorLocator = MultipleLocator(25)
-    rtOneAxe.yaxis.set_major_locator(oneYMajorLocator)
-    rtOneAxe.yaxis.set_major_formatter(oneYMajorFormatter)
-    rtOneAxe.yaxis.set_minor_locator(oneYMinorLocator)
-    rtOneAxe.xaxis.set_major_locator(oneXMajorLocator)
-    rtOneAxe.xaxis.set_major_formatter(oneXMajorFormatter)
-    rtOneAxe.xaxis.set_minor_locator(oneXMinorLocator)
-    rtOneAxe.set_xlabel("$Step\ Number$")
-    rtOneAxe.set_ylabel("$Position\ Error(m)$")
+    rtOneAxe.set_xlim(0, 250)
+    rtOneAxe.set_ylim(0.0, 40.0)
+    rtOneAxe.yaxis.set_major_locator(MultipleLocator(10.0))
+    rtOneAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    # rtOneAxe.yaxis.set_minor_locator(MultipleLocator(5.0))
+    rtOneAxe.xaxis.set_major_locator(MultipleLocator(50))
+    rtOneAxe.xaxis.set_major_formatter(FormatStrFormatter("%d"))
+    rtOneAxe.xaxis.set_minor_locator(MultipleLocator(25))
+    rtOneAxe.set_xlabel("Step Number")
+    rtOneAxe.set_ylabel("Position Error(m)")
     rtOneAxe.set_title("(a)")
-    #rtOneAxe.set_title("$(a)Position\ Error\ of\ Route\ 1$")
-    rtOnePDR, = rtOneAxe.plot(range(len(perOneList)), perOneList, color="blue", lw=2, linestyle="--", label="Basic PDR")
-    rtOneHMM, = rtOneAxe.plot(range(len(herOneList)), herOneList, color="red", lw=2, linestyle="-", label="AiFiMatch")
-    #rtOneAxe.legend(loc="best", fontsize=20)
+    rtOnePDR, = rtOneAxe.plot(range(len(perOneList)), perOneList, color=colorGroup[0], lw=2, linestyle="--", label="Basic PDR")
+    rtOneHMM, = rtOneAxe.plot(range(len(herOneList)), herOneList, color=colorGroup[1], lw=2, linestyle="-", label="AiFiMatch")
     rtOneAxe.legend(loc="best")
     plt.grid()
 
     rtTwoAxe = plt.subplot(312)
-    twoYMajorLocator = MultipleLocator(10)
-    twoYMajorFormatter = FormatStrFormatter("%.1f")
-    twoYMinorLocator = MultipleLocator(4.0)
-    twoXMajorLocator = MultipleLocator(20)
-    twoXMajorFormatter = FormatStrFormatter("%d")
-    twoXMinorLocator = MultipleLocator(10)
-    rtTwoAxe.yaxis.set_major_locator(twoYMajorLocator)
-    rtTwoAxe.yaxis.set_major_formatter(twoYMajorFormatter)
-    rtTwoAxe.yaxis.set_minor_locator(twoYMinorLocator)
-    rtTwoAxe.xaxis.set_major_locator(twoXMajorLocator)
-    rtTwoAxe.xaxis.set_major_formatter(twoXMajorFormatter)
-    rtTwoAxe.xaxis.set_minor_locator(twoXMinorLocator)
-    rtTwoAxe.set_xlabel("$Step\ Number$")
-    rtTwoAxe.set_ylabel("$Position\ Error(m)$")
+    rtTwoAxe.set_xlim(0, 120)
+    rtTwoAxe.set_ylim(0.0, 40.0)
+    rtTwoAxe.yaxis.set_major_locator(MultipleLocator(10.0))
+    rtTwoAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    # rtTwoAxe.yaxis.set_minor_locator(MultipleLocator(5.0))
+    rtTwoAxe.xaxis.set_major_locator(MultipleLocator(20))
+    rtTwoAxe.xaxis.set_major_formatter(FormatStrFormatter("%d"))
+    rtTwoAxe.set_xlabel("Step Number")
+    rtTwoAxe.set_ylabel("Position Error(m)")
     rtTwoAxe.set_title("(b)")
-    #rtTwoAxe.set_title("$(b)Position\ Error\ of\ Route\ 2$")
-    rtTwoPDR, = rtTwoAxe.plot(range(len(perTwoList)), perTwoList, color="blue", lw=2, linestyle="--", label="Basic PDR")
-    rtTwoHMM, = rtTwoAxe.plot(range(len(herTwoList)), herTwoList, color="red", lw=2, linestyle="-", label="AiFiMatch")
+    rtTwoPDR, = rtTwoAxe.plot(range(len(perTwoList)), perTwoList, color=colorGroup[0], lw=2,
+                              linestyle="--", label="Basic PDR")
+    rtTwoHMM, = rtTwoAxe.plot(range(len(herTwoList)), herTwoList, color=colorGroup[1], lw=2,
+                              linestyle="-", label="AiFiMatch")
     rtTwoAxe.legend(loc="best")
     plt.grid()
 
     rtThreeAxe = plt.subplot(313)
-    threeYMajorLocator = MultipleLocator(10.0)
-    threeYMajorFormatter = FormatStrFormatter("%.1f")
-    threeYMinorLocator = MultipleLocator(4)
-    threeXMajorLocator = MultipleLocator(50)
-    threeXMajorFormatter = FormatStrFormatter("%d")
-    threeXMinorLocator = MultipleLocator(25)
-    rtThreeAxe.yaxis.set_major_locator(threeYMajorLocator)
-    rtThreeAxe.yaxis.set_major_formatter(threeYMajorFormatter)
-    rtThreeAxe.yaxis.set_minor_locator(threeYMinorLocator)
-    rtThreeAxe.xaxis.set_major_locator(threeXMajorLocator)
-    rtThreeAxe.xaxis.set_major_formatter(threeXMajorFormatter)
-    rtThreeAxe.xaxis.set_minor_locator(threeXMinorLocator)
-    rtThreeAxe.set_xlabel("$Step\ Number$")
-    rtThreeAxe.set_ylabel("$Position\ Error(m)$")
+    rtThreeAxe.set_xlim(0, 250)
+    rtThreeAxe.set_ylim(0.0, 40.0)
+    rtThreeAxe.yaxis.set_major_locator(MultipleLocator(10.0))
+    rtThreeAxe.yaxis.set_major_formatter(FormatStrFormatter("%.1f"))
+    # rtThreeAxe.yaxis.set_minor_locator(MultipleLocator(5.0))
+    rtThreeAxe.xaxis.set_major_locator(MultipleLocator(50))
+    rtThreeAxe.xaxis.set_major_formatter(FormatStrFormatter("%d"))
+    rtThreeAxe.set_xlabel("Step Number")
+    rtThreeAxe.set_ylabel("Position Error(m)")
     rtThreeAxe.set_title("(c)")
-    #rtThreeAxe.set_title("$(c)Position\ Error\ of\ Route\ 3$")
-    rtThreePDR, = rtThreeAxe.plot(range(len(perThreeList)), perThreeList, color="blue", lw=2,
+    rtThreePDR, = rtThreeAxe.plot(range(len(perThreeList)), perThreeList, color=colorGroup[0], lw=2,
                                   linestyle="--", label="Basic PDR")
-    rtThreeHMM, = rtThreeAxe.plot(range(len(herThreeList)), herThreeList, color="red", lw=2,
+    rtThreeHMM, = rtThreeAxe.plot(range(len(herThreeList)), herThreeList, color=colorGroup[1], lw=2,
                                   linestyle="-", label="AiFiMatch")
     rtThreeAxe.legend(loc="best")
     plt.grid()

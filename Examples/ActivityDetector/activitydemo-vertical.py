@@ -17,8 +17,8 @@ from dataloader import loadAcceData, loadGyroData
 
 
 if __name__ == "__main__":
-    sensorFilePath = ("./Examples/ActivityDetector/20170622153925_acce.csv",
-                      "./Examples/ActivityDetector/20170622153925_gyro.csv")
+    sensorFilePath = ("20170622153925_acce.csv",
+                      "20170622153925_gyro.csv")
 
     # Load accelerometer data from files
     acceTimeList, acceValueList = loadAcceData(sensorFilePath[0])
